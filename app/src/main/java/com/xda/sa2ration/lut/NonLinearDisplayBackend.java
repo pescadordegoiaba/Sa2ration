@@ -1,0 +1,1 @@
+package com.xda.sa2ration.lut;import com.xda.sa2ration.backend.CapabilityStatus;public interface NonLinearDisplayBackend {CapabilityStatus gammaStatus();CapabilityStatus lut1dStatus();CapabilityStatus lut3dStatus();String unavailableReason();default boolean apply(Lut1D lut){return false;}default boolean apply(CubeLut3D lut,double intensity){return false;}}

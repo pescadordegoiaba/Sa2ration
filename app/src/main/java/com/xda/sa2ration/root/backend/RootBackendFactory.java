@@ -1,0 +1,3 @@
+package com.xda.sa2ration.root.backend;
+import com.xda.sa2ration.root.RootDetectionResult;import com.xda.sa2ration.shell.RootShellExecutor;
+public final class RootBackendFactory {private RootBackendFactory(){} public static RootBackend create(RootShellExecutor e,RootDetectionResult d){switch(d.implementation){case MAGISK:return new MagiskRootBackend(e,d);case KERNELSU:return new KernelSuRootBackend(e,d);case SUKISU_ULTRA:return new SukiSuRootBackend(e,d);case RESUKISU:return new ReSukiSuRootBackend(e,d);case KERNELSU_FORK:return new KernelSuForkRootBackend(e,d);case APATCH:return new APatchRootBackend(e,d);default:return new GenericSuBackend(e,d);}}}

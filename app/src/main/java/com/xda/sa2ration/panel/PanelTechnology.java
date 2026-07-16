@@ -1,0 +1,2 @@
+package com.xda.sa2ration.panel;
+public enum PanelTechnology { UNKNOWN, LCD, TFT_LCD, IPS_LCD, PLS_LCD, LTPS_LCD, LTPO_LCD, OLED, POLED, AMOLED, SUPER_AMOLED, DYNAMIC_AMOLED, LTPO_OLED, MINI_LED, OTHER }

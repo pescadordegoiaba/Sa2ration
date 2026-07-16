@@ -16,13 +16,39 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".ui.settings.SettingsActivity"
+            android:exported="false"
+            android:parentActivityName=".MainActivity" />
         <receiver
             android:name=".NewBootReceiver"
-            android:exported="true">
+            android:exported="false">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.USER_UNLOCKED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
             </intent-filter>
         </receiver>
+        <receiver
+            android:name=".recovery.InternalResetReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.xda.sa2ration.action.RESET_DISPLAY" />
+            </intent-filter>
+        </receiver>
+        <receiver android:name=".recovery.AdbResetReceiver" android:exported="true" android:permission="android.permission.DUMP">
+            <intent-filter><action android:name="com.xda.sa2ration.action.ADB_RESET_DISPLAY" /></intent-filter>
+        </receiver>
+        <service android:name=".tiles.MasterTileService" android:label="Sa2ration" android:icon="@drawable/ic_tile_display" android:permission="android.permission.BIND_QUICK_SETTINGS_TILE" android:exported="true">
+            <intent-filter><action android:name="android.service.quicksettings.action.QS_TILE" /></intent-filter>
+            <meta-data android:name="android.service.quicksettings.ACTIVE_TILE" android:value="true" />
+        </service>
+        <service android:name=".tiles.NextProfileTileService" android:label="Próximo perfil" android:icon="@drawable/ic_tile_display" android:permission="android.permission.BIND_QUICK_SETTINGS_TILE" android:exported="true">
+            <intent-filter><action android:name="android.service.quicksettings.action.QS_TILE" /></intent-filter>
+        </service>
+        <service android:name=".tiles.EmergencyResetTileService" android:label="Reset Sa2ration" android:icon="@drawable/ic_tile_display" android:permission="android.permission.BIND_QUICK_SETTINGS_TILE" android:exported="true">
+            <intent-filter><action android:name="android.service.quicksettings.action.QS_TILE" /></intent-filter>
+        </service>
     </application>
 
 </manifest>

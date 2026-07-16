@@ -1,0 +1,3 @@
+package com.xda.sa2ration.profile;
+import org.junit.Test;import static org.junit.Assert.*;
+public final class ProfileJsonCodecTest {@Test public void defaultsRoundTrip(){ProfileDocument d=new ProfileDocument();d.profiles=ProfileTemplates.defaults();ProfileDocument decoded=new ProfileJsonCodec().decode(new ProfileJsonCodec().encode(d));assertEquals(16,decoded.profiles.size());assertEquals("neutral",decoded.profiles.get(0).id);assertTrue(decoded.profiles.get(0).builtIn);}@Test(expected=IllegalArgumentException.class)public void rejectsIncompleteProfile(){new ProfileJsonCodec().decode("{\"schemaVersion\":1,\"profiles\":[{\"id\":null}]}");}}
