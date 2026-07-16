@@ -10,7 +10,7 @@
         android:theme="@style/AppTheme">
         <activity android:name=".MainActivity"
             android:exported="true"
-            android:theme="@style/AppTheme.NoActionBar">
+            android:theme="@style/AppTheme">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -19,7 +19,9 @@
         <activity
             android:name=".ui.settings.SettingsActivity"
             android:exported="false"
+            android:theme="@style/AppTheme"
             android:parentActivityName=".MainActivity" />
+        <activity android:name=".ui.calibration.CalibrationActivity" android:exported="false" android:theme="@style/AppTheme" />
         <receiver
             android:name=".NewBootReceiver"
             android:exported="false">
@@ -39,14 +41,14 @@
         <receiver android:name=".recovery.AdbResetReceiver" android:exported="true" android:permission="android.permission.DUMP">
             <intent-filter><action android:name="com.xda.sa2ration.action.ADB_RESET_DISPLAY" /></intent-filter>
         </receiver>
-        <service android:name=".tiles.MasterTileService" android:label="Sa2ration" android:icon="@drawable/ic_tile_display" android:permission="android.permission.BIND_QUICK_SETTINGS_TILE" android:exported="true">
+        <service android:name=".tiles.MasterTileService" android:label="@string/tile_master" android:icon="@drawable/ic_tile_display" android:permission="android.permission.BIND_QUICK_SETTINGS_TILE" android:exported="true">
             <intent-filter><action android:name="android.service.quicksettings.action.QS_TILE" /></intent-filter>
             <meta-data android:name="android.service.quicksettings.ACTIVE_TILE" android:value="true" />
         </service>
-        <service android:name=".tiles.NextProfileTileService" android:label="Próximo perfil" android:icon="@drawable/ic_tile_display" android:permission="android.permission.BIND_QUICK_SETTINGS_TILE" android:exported="true">
+        <service android:name=".tiles.NextProfileTileService" android:label="@string/tile_next_profile" android:icon="@drawable/ic_tile_display" android:permission="android.permission.BIND_QUICK_SETTINGS_TILE" android:exported="true">
             <intent-filter><action android:name="android.service.quicksettings.action.QS_TILE" /></intent-filter>
         </service>
-        <service android:name=".tiles.EmergencyResetTileService" android:label="Reset Sa2ration" android:icon="@drawable/ic_tile_display" android:permission="android.permission.BIND_QUICK_SETTINGS_TILE" android:exported="true">
+        <service android:name=".tiles.EmergencyResetTileService" android:label="@string/tile_emergency_reset" android:icon="@drawable/ic_tile_display" android:permission="android.permission.BIND_QUICK_SETTINGS_TILE" android:exported="true">
             <intent-filter><action android:name="android.service.quicksettings.action.QS_TILE" /></intent-filter>
         </service>
     </application>

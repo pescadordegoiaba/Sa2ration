@@ -26,3 +26,18 @@ allprojects {
 task clean(type: Delete) {
     delete rootProject.buildDir
 }
+
+tasks.register('packageCompanionModule', Zip) {
+    group = 'distribution'
+    description = 'Empacota o módulo complementar para Magisk, KernelSU e APatch.'
+    archiveFileName = 'Sa2ration-Companion-1.0.0.zip'
+    destinationDirectory = layout.buildDirectory.dir('outputs/module')
+    from('companion-module')
+    preserveFileTimestamps = false
+    reproducibleFileOrder = true
+    eachFile { details ->
+        if (details.path in ['customize.sh', 'service.sh', 'action.sh', 'uninstall.sh', 'bin/sa2rationctl']) {
+            details.permissions { permissions -> permissions.unix('rwxr-xr-x') }
+        }
+    }
+}

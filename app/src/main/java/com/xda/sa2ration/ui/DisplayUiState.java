@@ -8,6 +8,7 @@ import com.xda.sa2ration.root.RootDetectionResult;
 import com.xda.sa2ration.profile.DisplayProfile;
 import java.util.Collections;
 import java.util.List;
+import com.xda.sa2ration.lut.CompanionModuleStatus;
 
 public final class DisplayUiState {
     public final DisplayConfiguration configuration;
@@ -25,13 +26,14 @@ public final class DisplayUiState {
     public final String selectedPanel;
     public final String selectedBackend;
     public final List<DisplayProfile> profiles;
+    public final CompanionModuleStatus companionModule;
 
     public DisplayUiState(DisplayConfiguration configuration, Matrix4 finalMatrix, boolean loading,
                           boolean applying, boolean awaitingConfirmation, int countdownSeconds,
                           String backendName, String message,RootDetectionResult root,
                           DisplayPanelInfo panel,SurfaceFlingerCapabilities surfaceFlinger,
                           String selectedRoot,String selectedPanel,String selectedBackend,
-                          List<DisplayProfile> profiles) {
+                          List<DisplayProfile> profiles,CompanionModuleStatus companionModule) {
         this.configuration = configuration;
         this.finalMatrix = finalMatrix;
         this.loading = loading;
@@ -43,18 +45,19 @@ public final class DisplayUiState {
         this.root=root;this.panel=panel;this.surfaceFlinger=surfaceFlinger;
         this.selectedRoot=selectedRoot;this.selectedPanel=selectedPanel;this.selectedBackend=selectedBackend;
         this.profiles=profiles==null?Collections.emptyList():Collections.unmodifiableList(profiles);
+        this.companionModule=companionModule==null?new CompanionModuleStatus():companionModule;
     }
 
     public static DisplayUiState loading() {
         return new DisplayUiState(DisplayConfiguration.neutral(), Matrix4.identity(), true,
                 false, false, 0, "Detectando…", "",new RootDetectionResult(),
-                new DisplayPanelInfo(),null,"AUTO","AUTO","AUTO",Collections.emptyList());
+                new DisplayPanelInfo(),null,"AUTO","AUTO","AUTO",Collections.emptyList(),new CompanionModuleStatus());
     }
 
     public DisplayUiState with(DisplayConfiguration configuration, Matrix4 matrix, boolean applying,
                                boolean awaiting, int seconds, String message) {
         return new DisplayUiState(configuration, matrix, false, applying, awaiting, seconds,
                 backendName, message == null ? "" : message,root,panel,surfaceFlinger,
-                selectedRoot,selectedPanel,selectedBackend,profiles);
+                selectedRoot,selectedPanel,selectedBackend,profiles,companionModule);
     }
 }

@@ -18,7 +18,11 @@ Painel avançado de imagem e display para Android com root. Esta versão preserv
 - perfis padrão e personalizados em JSON versionado, com importação/exportação;
 - tiles de liga/desliga, próximo perfil e reset de emergência;
 - restauração segura no boot usando WorkManager;
-- relatório diagnóstico TXT/JSON e tela de configurações com Root, Painel, Backend, Segurança, Persistência, Inicialização, Diagnóstico, Logs e Sobre.
+- relatório diagnóstico TXT/JSON e tela de configurações com Root, Painel, Backend, Segurança, Persistência, Inicialização, Diagnóstico, Logs e Sobre;
+- Material 3 edge-to-edge com insets de status bar, navbar, recorte e teclado;
+- controles responsivos para tela compacta e fonte ampliada;
+- padrões SMPTE, grayscale, clipping, gradiente, OLED e LCD;
+- módulo complementar instalável para Magisk, KernelSU/SukiSU/ReSukiSU e APatch.
 
 ## Interface
 
@@ -39,7 +43,7 @@ identidade → temperatura → tint → ganho RGB → offset RGB
 
 A saturação global continua na transação nativa `1022`. As demais transformações lineares são multiplicadas corretamente em formato column-major para a transação `1015`. Com o master ou todos os efeitos desligados, o resultado é identidade e saturação `1.0`.
 
-Gama real, curvas, LUT, vibrance, black equalizer real, nitidez, debanding, redução de ruído e tone mapping não são falsamente aproximados por matriz. Existem modelos validados de LUT 1D, parser `.cube`, curvas e uma interface de backend não linear, mas a aplicação mostra **requer módulo** enquanto não houver compositor/serviço compatível.
+Gama real, curvas e LUT não são falsamente aproximadas por matriz. O Sa2ration Companion fornece protocolo e serviço root, mas só anuncia/aplica uma operação quando existe um adaptador validado para o hardware.
 
 ## Root e painel
 
@@ -47,7 +51,7 @@ Root só é considerado funcional quando `su -c id -u` conclui, sem timeout, e s
 
 O tipo do painel é inferido por `DisplayManager`, modos do display, propriedades, dumpsys e caminhos DRM/backlight/device-tree lidos via root. Nome de painel, existência de backlight e tokens específicos possuem pesos; a marca sozinha não classifica o painel. A seleção manual só muda as categorias visuais — comandos físicos ainda exigem capacidade confirmada.
 
-Detalhes: [arquitetura](docs/ARCHITECTURE.md), [detecção de root](docs/ROOT_DETECTION.md), [detecção de painel](docs/PANEL_DETECTION.md), [compatibilidade](docs/COMPATIBILITY.md) e [recuperação](docs/RECOVERY.md).
+Detalhes: [arquitetura](docs/ARCHITECTURE.md), [módulo complementar](docs/COMPANION_MODULE.md), [detecção de root](docs/ROOT_DETECTION.md), [detecção de painel](docs/PANEL_DETECTION.md), [compatibilidade](docs/COMPATIBILITY.md) e [recuperação](docs/RECOVERY.md).
 
 ## Perfis e automação
 
@@ -64,7 +68,7 @@ O motor de prioridades para aplicação, horário, dia, luz, bateria, carregamen
 | Root genérico/Magisk/KSU/forks/APatch | Execução genérica real + classificação heurística |
 | Painel LCD/OLED/AMOLED | Detecção heurística + override visual |
 | Perfis / backup / tiles / boot | Implementados |
-| Gama, LUT 1D/3D e curvas | Modelo/parser; requer módulo não linear |
+| Gama, LUT 1D/3D e curvas | Companion implementado; requer adaptador vendor validado |
 | Brilho físico, HBM, DC dimming, PWM, CABC, MEMC | Somente capacidade/estado indisponível |
 | Refresh rate, resolução e DPI | Arquitetura preparada; backend de escrita não habilitado |
 | Samsung/Qualcomm/MediaTek/Exynos/OEMs | Adaptadores de detecção; nenhuma escrita desconhecida |
@@ -80,12 +84,14 @@ cd Sa2ration
 ./gradlew test
 ./gradlew lintDebug
 ./gradlew assembleDebug
+./gradlew packageCompanionModule
 ```
 
 No Windows use `gradlew.bat`. O APK é gerado em:
 
 ```text
 app/build/outputs/apk/debug/app-debug.apk
+build/outputs/module/Sa2ration-Companion-1.0.0.zip
 ```
 
 Instalação:
@@ -128,8 +134,8 @@ Consulte [RECOVERY.md](docs/RECOVERY.md) para reset direto e reativação.
 - valores extremos podem causar clipping, tela branca/escura ou dominante forte;
 - a seleção manual de painel/root não ignora verificações funcionais;
 - não há escrita ativa em sysfs vendor, ciclos de compensação OLED ou controladores do painel;
-- gama/LUT real requer módulo Magisk/KernelSU/APatch ou serviço nativo específico, ainda não incluído;
-- automação contínua e preview de calibração completo permanecem parciais.
+- gama/LUT real requer adaptador compatível dentro do Companion; o módulo base não inventa comandos;
+- automação contínua permanece parcial; os padrões essenciais de calibração estão implementados.
 
 ## Desenvolvimento
 

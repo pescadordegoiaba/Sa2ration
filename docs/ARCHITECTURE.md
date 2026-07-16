@@ -10,6 +10,7 @@
 - `panel` e `manufacturer`: classificação por evidências e adaptadores conservadores.
 - `recovery` e `tiles`: estado estável, rollback, boot e entradas de emergência.
 - `lut` e `automation`: modelos independentes de backend.
+- `companion-module`: módulo root empacotável e protocolo de adaptadores não lineares.
 
 `MainActivity` somente hospeda toolbar, tabs e diálogo de confirmação. `DisplayViewModel` coordena estado e I/O fora da thread principal. `RootShellExecutor` mantém execução serializada, captura stdout/stderr/exit code/timeout/duração e fecha processos corretamente.
 
@@ -26,3 +27,7 @@ O switch desligado preserva o valor editado em `DisplayConfiguration`, mas o est
 ## Capacidade antes de comando
 
 `BackendCapabilities` classifica SUPPORTED, UNSUPPORTED, EXPERIMENTAL, UNTESTED, REQUIRES_MODULE, FAILED e UNKNOWN. Adaptadores OEM nunca habilitam escrita somente por fabricante/modelo. Uma futura operação física deverá comprovar caminho, formato, intervalo, valor anterior e método de restauração.
+
+## Interface adaptativa
+
+Activities desenham edge-to-edge e aplicam `systemBars`, `displayCutout` e `ime` por `WindowInsetsCompat`. O conteúdo é centralizado até 840dp; controles numéricos trocam linha por coluna abaixo de 340dp úteis ou com `fontScale >= 1.25`. Botões de ação também empilham em largura compacta.

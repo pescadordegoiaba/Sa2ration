@@ -1,28 +1,49 @@
 <resources>
     <string name="app_name">Sa2ration</string>
 
-    <string name="photo_by">Photo Credit</string>
-    <string name="photo_by_desc">Photo taken by Vik Vik; uploaded to <![CDATA[<a href="https://www.wesaturate.com/photo/bfxImVCM">Wesaturate</a>]]></string>
-    <string name="enable_dci">Enable Color Management</string>
-    <string name="reset">Reset</string>
-    <string name="save">save</string>
-    <string name="hue_level">Hue level</string>
-    <string name="contrast_level">Contrast level</string>
-    <string name="color_management">Color management</string>
-    <string name="saturation_level">Saturation level</string>
-    <string name="values_are_saved">Values are saved</string>
-    <string name="warning_no_root">Root access was not detected. App will exit now.</string>
-    <string name="accept">OK</string>
-    <string name="preview">Preview</string>
-    <string name="global_adjustments">Global adjustments (0–10×)</string>
-    <string name="saturation_by_color">Saturation by color (0–10×)</string>
-    <string name="contrast_by_color">Contrast by color (0–10×)</string>
-    <string name="red">Red</string>
-    <string name="green">Green</string>
-    <string name="blue">Blue</string>
     <string name="settings">Configurações</string>
     <string name="reset_feature">Resetar recurso</string>
     <string name="backend_value">Backend: %1$s</string>
     <string name="detecting_environment">Detectando ambiente…</string>
     <string name="restore_stable_boot">Restaurar configuração estável no boot</string>
+    <string name="category_simple">Simples</string>
+    <string name="category_color">Cor</string>
+    <string name="category_rgb">RGB</string>
+    <string name="category_display">Tela</string>
+    <string name="category_oled">OLED</string>
+    <string name="category_lcd">LCD</string>
+    <string name="category_accessibility">Acessibilidade</string>
+    <string name="category_profiles">Perfis</string>
+    <string name="category_automation">Automação</string>
+    <string name="category_compatibility">Compatibilidade</string>
+    <string name="category_advanced">Avançado</string>
+    <string name="temporary_application_title">Aplicação temporária</string>
+    <plurals name="temporary_application_message">
+        <item quantity="one">Esta configuração pode dificultar o uso da tela. Reversão automática em %1$d segundo.</item>
+        <item quantity="other">Esta configuração pode dificultar o uso da tela. Reversão automática em %1$d segundos.</item>
+    </plurals>
+    <string name="keep_changes">Manter</string>
+    <string name="revert_changes">Reverter</string>
+    <string name="numeric_value_hint">Valor</string>
+    <string name="status_supported">Suportado</string>
+    <string name="status_unsupported">Não suportado</string>
+    <string name="status_experimental">Experimental</string>
+    <string name="status_requires_module">Requer módulo complementar</string>
+    <string name="status_failed">Falhou</string>
+    <string name="status_untested">Não testado</string>
+    <string name="status_unknown">Desconhecido</string>
+    <string name="settings_title">Configurações</string>
+    <string name="tile_master">Sa2ration</string>
+    <string name="tile_next_profile">Próximo perfil</string>
+    <string name="tile_emergency_reset">Reset Sa2ration</string>
+    <string name="tile_active">Ativo</string>
+    <string name="tile_neutral">Neutro</string>
+    <string name="back">Voltar</string>
+    <string name="calibration_title">Calibração e testes</string>
+    <string name="calibration_warning">O padrão também recebe a transformação global do SurfaceFlinger. A prévia da Activity pode variar em relação ao pipeline físico do painel.</string>
+    <string name="calibration_pattern">Padrão</string>
+    <string name="open_calibration">Abrir padrões de calibração</string>
+    <string-array name="calibration_patterns">
+        <item>Barras SMPTE</item><item>Escala de cinza</item><item>Black clipping</item><item>White clipping</item><item>Gradiente e banding</item><item>Cores primárias</item><item>Teste OLED</item><item>Teste LCD</item>
+    </string-array>
 </resources>

@@ -27,6 +27,8 @@ import com.xda.sa2ration.profile.ProfileRepository;
 
 import java.util.ArrayList;
 import java.util.List;
+import com.xda.sa2ration.lut.CompanionModuleDetector;
+import com.xda.sa2ration.lut.CompanionModuleStatus;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -41,6 +43,7 @@ public final class DisplayViewModel extends AndroidViewModel {
     private final DisplayApplyCoordinator applyCoordinator;
     private final ProfileRepository profileRepository;
     private volatile List<DisplayProfile> profiles=new ArrayList<>();
+    private volatile CompanionModuleStatus companionModule=new CompanionModuleStatus();
     private volatile RootDetectionResult rootDetection=new RootDetectionResult();
     private volatile DisplayPanelInfo panelInfo=new DisplayPanelInfo();
     private volatile SurfaceFlingerCapabilities surfaceFlingerCapabilities;
@@ -57,6 +60,7 @@ public final class DisplayViewModel extends AndroidViewModel {
             profiles=profileRepository.load();
             selectedRoot=stored.selectedRootImplementation;selectedPanel=stored.selectedPanelTechnology;selectedBackend=stored.selectedBackend;
             rootDetection=new RootEnvironmentDetector(rootExecutor).detect();
+            companionModule=new CompanionModuleDetector(rootExecutor).detect();
             panelInfo=new DisplayPanelDetector(application,rootExecutor).detect(selectedPanel);
             surfaceFlingerCapabilities=SurfaceFlingerCapabilities.detect(rootExecutor);
             DisplayConfiguration configuration = stored.current.copy();
@@ -138,7 +142,7 @@ public final class DisplayViewModel extends AndroidViewModel {
     public boolean importProfiles(String json){boolean ok=profileRepository.importJson(json);if(ok){profiles=profileRepository.load();DisplayUiState current=state.getValue();if(current!=null)post(current.configuration,false,false,0,"Perfis importados");}return ok;}
 
     public void redetect(){
-        io.execute(()->{rootDetection=new RootEnvironmentDetector(rootExecutor).detect();panelInfo=new DisplayPanelDetector(getApplication(),rootExecutor).detect(selectedPanel);surfaceFlingerCapabilities=SurfaceFlingerCapabilities.detect(rootExecutor);DisplayUiState current=state.getValue();if(current!=null)post(current.configuration,false,false,0,"Detecção concluída");});
+        io.execute(()->{rootDetection=new RootEnvironmentDetector(rootExecutor).detect();companionModule=new CompanionModuleDetector(rootExecutor).detect();panelInfo=new DisplayPanelDetector(getApplication(),rootExecutor).detect(selectedPanel);surfaceFlingerCapabilities=SurfaceFlingerCapabilities.detect(rootExecutor);DisplayUiState current=state.getValue();if(current!=null)post(current.configuration,false,false,0,"Detecção concluída");});
     }
 
     public void selectPanel(String selection){selectedPanel=selection;io.execute(()->{StoredApplicationState s=repository.load();s.selectedPanelTechnology=selection;repository.save(s);panelInfo=new DisplayPanelDetector(getApplication(),rootExecutor).detect(selection);DisplayUiState current=state.getValue();if(current!=null)post(current.configuration,false,false,0,"Painel selecionado: "+selection);});}
@@ -151,7 +155,7 @@ public final class DisplayViewModel extends AndroidViewModel {
         catch(RuntimeException error){ matrix=Matrix4.identity(); message="Matriz inválida: "+error.getMessage(); }
         state.postValue(new DisplayUiState(configuration,matrix,false,applying,awaiting,seconds,
                 "SurfaceFlinger 1015/1022",message,rootDetection,panelInfo,surfaceFlingerCapabilities,
-                selectedRoot,selectedPanel,selectedBackend,new ArrayList<>(profiles)));
+                selectedRoot,selectedPanel,selectedBackend,new ArrayList<>(profiles),companionModule));
     }
 
     private final class CoordinatorListener implements DisplayApplyCoordinator.Listener {

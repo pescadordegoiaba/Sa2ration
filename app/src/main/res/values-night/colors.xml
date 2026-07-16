@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="sa_primary">#AAC7FF</color>
+    <color name="sa_on_primary">#002F65</color>
+    <color name="sa_primary_container">#17477F</color>
+    <color name="sa_on_primary_container">#D7E3FF</color>
+    <color name="sa_secondary">#BBC7DB</color>
+    <color name="sa_secondary_container">#3B485A</color>
+    <color name="sa_surface">#111318</color>
+    <color name="sa_surface_container">#1D2025</color>
+    <color name="sa_surface_container_high">#282A30</color>
+    <color name="sa_on_surface">#E2E2E9</color>
+    <color name="sa_outline">#8E9099</color>
+    <color name="sa_success">#91D88D</color>
+    <color name="sa_warning">#FFB951</color>
+    <color name="sa_error">#FFB4AB</color>
+    <color name="colorPrimaryDark">#061D36</color>
+</resources>

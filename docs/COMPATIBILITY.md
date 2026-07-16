@@ -10,7 +10,8 @@
 | Perfis | Suportado | JSON versionado/AtomicFile |
 | Boot | Suportado | WorkManager e estado estável |
 | Quick Settings | Suportado | master, próximo perfil, reset |
-| Gama/LUT/curvas | Requer módulo | modelos/parser prontos, sem aplicação falsa |
+| Companion root | Suportado | ZIP Magisk/KernelSU/APatch e detecção no app |
+| Gama/LUT/curvas | Requer adaptador | protocolo e serialização prontos, sem aplicação falsa |
 | HDR/HBM/DC/PWM/CABC/MEMC | Desconhecido | nenhuma escrita sem backend confirmado |
 | Resolução/DPI/refresh | Preparado | operações de escrita desativadas |
 | Samsung/Qualcomm/MediaTek/Exynos/OEM | Detecção | adaptadores conservadores |
@@ -19,4 +20,4 @@ Tecnologias LCD, TFT, IPS, PLS, LTPS, LTPO LCD, OLED, POLED, AMOLED, Super/Dynam
 
 ## Módulo complementar necessário
 
-Gama por canal real, LUT 1D/3D, curvas, vibrance, black equalizer não linear, soft clipping, compressão de gamut, nitidez, debanding, dithering, contraste local, redução de ruído e tone mapping precisam de RenderEngine/HWC/LUT vendor ou serviço nativo. O contrato `NonLinearDisplayBackend` e os modelos já separam essa futura implementação do pipeline linear.
+Gama por canal real, LUT 1D/3D e curvas podem ser encaminhadas pelo Companion quando um adaptador declara suporte. Vibrance, black equalizer, soft clipping, compressão de gamut, nitidez, debanding, dithering, contraste local, redução de ruído e tone mapping ainda precisam de RenderEngine/HWC/LUT vendor específico.

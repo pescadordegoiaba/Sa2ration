@@ -1,0 +1,60 @@
+#!/system/bin/sh
+MODDIR=${0%/*}
+MODDIR=${MODDIR%/*}
+ADAPTER_DIR="$MODDIR/adapters/active"
+
+read_capability() {
+  KEY=$1
+  FILE="$ADAPTER_DIR/capabilities.properties"
+  if [ -f "$FILE" ]; then
+    VALUE=$(sed -n "s/^${KEY}=//p" "$FILE" | head -n 1)
+    case "$VALUE" in supported|experimental|unsupported) printf '%s' "$VALUE";; *) printf 'unsupported';; esac
+  else
+    printf 'unsupported'
+  fi
+}
+
+adapter_id() {
+  FILE="$ADAPTER_DIR/capabilities.properties"
+  if [ -f "$FILE" ]; then
+    sed -n 's/^adapter.id=//p' "$FILE" | head -n 1 | tr -cd 'A-Za-z0-9._-'
+  else
+    printf 'none'
+  fi
+}
+
+probe() {
+  printf 'schema.version=1\nmodule.installed=true\nmodule.version=1.0.0\n'
+  printf 'adapter.id=%s\n' "$(adapter_id)"
+  printf 'gamma=%s\n' "$(read_capability gamma)"
+  printf 'rgbGamma=%s\n' "$(read_capability rgbGamma)"
+  printf 'lut1d=%s\n' "$(read_capability lut1d)"
+  printf 'lut3d=%s\n' "$(read_capability lut3d)"
+  printf 'curves=%s\n' "$(read_capability curves)"
+  if [ -x "$ADAPTER_DIR/health" ]; then printf 'adapter.health=available\n'; else printf 'adapter.health=unavailable\n'; fi
+}
+
+require_payload() {
+  PAYLOAD=$1
+  [ -n "$PAYLOAD" ] || return 2
+  [ -f "$PAYLOAD" ] || return 3
+  SIZE=$(wc -c <"$PAYLOAD")
+  [ "$SIZE" -gt 0 ] && [ "$SIZE" -le 67108864 ] || return 4
+}
+
+run_adapter() {
+  OPERATION=$1
+  shift
+  EXECUTABLE="$ADAPTER_DIR/$OPERATION"
+  [ -x "$EXECUTABLE" ] || { echo "adapter operation unavailable: $OPERATION" >&2; return 20; }
+  "$EXECUTABLE" "$@"
+}
+
+case "$1" in
+  probe|capabilities) probe ;;
+  health) if [ -x "$ADAPTER_DIR/health" ]; then run_adapter health; else echo "module=ok adapter=unavailable"; fi ;;
+  apply-lut1d) require_payload "$2" || exit $?; run_adapter apply-lut1d "$2" ;;
+  apply-lut3d) require_payload "$2" || exit $?; case "$3" in ''|*[!0-9.]* ) echo "invalid intensity" >&2; exit 5;; esac; run_adapter apply-lut3d "$2" "$3" ;;
+  reset) run_adapter reset ;;
+  *) echo "usage: sa2rationctl {probe|health|apply-lut1d FILE|apply-lut3d FILE INTENSITY|reset}" >&2; exit 64 ;;
+esac

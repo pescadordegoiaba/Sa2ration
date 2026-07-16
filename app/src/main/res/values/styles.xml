@@ -1,66 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-
-    <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.MaterialComponents.DayNight">
-        <!-- Customize your theme here. -->
-        <item name="colorPrimary">@color/colorPrimary</item>
-        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
-        <item name="colorAccent">@color/colorAccent</item>
-        <item name="fontFamily">@font/montserrat</item>
-    </style>
-
-    <style name="AppTheme.NoActionBar">
+    <style name="AppTheme" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/sa_primary</item>
+        <item name="colorOnPrimary">@color/sa_on_primary</item>
+        <item name="colorPrimaryContainer">@color/sa_primary_container</item>
+        <item name="colorOnPrimaryContainer">@color/sa_on_primary_container</item>
+        <item name="colorSecondary">@color/sa_secondary</item>
+        <item name="colorSecondaryContainer">@color/sa_secondary_container</item>
+        <item name="colorSurface">@color/sa_surface</item>
+        <item name="colorSurfaceContainer">@color/sa_surface_container</item>
+        <item name="colorSurfaceContainerHigh">@color/sa_surface_container_high</item>
+        <item name="colorOnSurface">@color/sa_on_surface</item>
+        <item name="colorOutline">@color/sa_outline</item>
+        <item name="android:fontFamily">sans</item>
+        <item name="android:windowActionModeOverlay">true</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowNoTitle">true</item>
         <item name="windowActionBar">false</item>
-        <item name="windowNoTitle">true</item>
+        <item name="materialAlertDialogTheme">@style/Sa2ration.AlertDialog</item>
     </style>
 
-    <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
-
-    <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
-
-    <style name="ColorSectionTitle">
-        <item name="android:layout_width">match_parent</item>
-        <item name="android:layout_height">wrap_content</item>
-        <item name="android:layout_marginBottom">8dp</item>
-        <item name="android:fontFamily">@font/montserrat</item>
-        <item name="android:textSize">16sp</item>
-        <item name="android:textStyle">bold</item>
+    <style name="Sa2ration.AlertDialog" parent="ThemeOverlay.Material3.MaterialAlertDialog">
+        <item name="shapeAppearanceOverlay">@style/Sa2ration.Shape.Dialog</item>
     </style>
 
-    <style name="ColorControlLabel">
-        <item name="android:layout_width">match_parent</item>
-        <item name="android:layout_height">wrap_content</item>
-        <item name="android:paddingStart">8dp</item>
-        <item name="android:textSize">14sp</item>
+    <style name="Sa2ration.Shape.Dialog" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">28dp</item>
     </style>
 
-    <style name="ColorControlRow">
-        <item name="android:layout_width">match_parent</item>
-        <item name="android:layout_height">wrap_content</item>
-        <item name="android:layout_marginBottom">10dp</item>
-        <item name="android:gravity">center_vertical</item>
-        <item name="android:orientation">horizontal</item>
+    <style name="Sa2ration.Toolbar" parent="Widget.Material3.Toolbar.Surface">
+        <item name="titleTextAppearance">@style/TextAppearance.Material3.TitleLarge</item>
     </style>
-
-    <style name="ColorControlSeekBar">
-        <item name="android:layout_width">0dp</item>
-        <item name="android:layout_height">wrap_content</item>
-        <item name="android:layout_weight">1</item>
-        <item name="android:max">1000</item>
-        <item name="android:progress">100</item>
-    </style>
-
-    <style name="ColorControlInput">
-        <item name="android:layout_width">76dp</item>
-        <item name="android:layout_height">wrap_content</item>
-        <item name="android:digits">0123456789.,</item>
-        <item name="android:inputType">numberDecimal</item>
-        <item name="android:maxLength">5</item>
-        <item name="android:selectAllOnFocus">true</item>
-        <item name="android:singleLine">true</item>
-        <item name="android:textAlignment">textEnd</item>
-        <item name="android:textSize">14sp</item>
-    </style>
-
 
 </resources>
