@@ -13,4 +13,11 @@
     <string name="values_are_saved">Values are saved</string>
     <string name="warning_no_root">Root access was not detected. App will exit now.</string>
     <string name="accept">Ok</string>
+    <string name="preview">Preview</string>
+    <string name="global_adjustments">Global adjustments (0–10×)</string>
+    <string name="saturation_by_color">Saturation by color (0–10×)</string>
+    <string name="contrast_by_color">Contrast by color (0–10×)</string>
+    <string name="red">Red</string>
+    <string name="green">Green</string>
+    <string name="blue">Blue</string>
 </resources>

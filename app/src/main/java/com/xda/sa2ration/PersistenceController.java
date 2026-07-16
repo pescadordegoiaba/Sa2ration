@@ -7,11 +7,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
-
-import java8.util.Optional;
-import java8.util.stream.Collectors;
-import java8.util.stream.StreamSupport;
 
 import static android.content.Context.MODE_PRIVATE;
 
@@ -22,13 +19,14 @@ public class PersistenceController {
     private static PersistenceController instance;
 
     private PersistenceController(Context context) {
-        this.context = context;
+        this.context = context.getApplicationContext();
         values = new HashMap<>();
         Properties properties = new Properties();
         try (FileInputStream fis  = context.openFileInput("info.properties")) {
             properties.load(fis);
-            values = StreamSupport.stream(properties.keySet())
-                    .collect(Collectors.toMap(String::valueOf, k -> properties.getProperty(k + "")));
+            for (String name : properties.stringPropertyNames()) {
+                values.put(name, properties.getProperty(name));
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -65,8 +63,7 @@ public class PersistenceController {
     public void persist() {
         Properties properties = new Properties();
         try (FileOutputStream fos  = context.openFileOutput("info.properties", MODE_PRIVATE)) {
-            StreamSupport.stream(values.entrySet())
-                    .forEach(entry -> properties.put(entry.getKey(), entry.getValue()));
+            properties.putAll(values);
             properties.store(fos, null);
         } catch (IOException e) {
             e.printStackTrace();
