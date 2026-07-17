@@ -1,0 +1,1 @@
+package com.xda.sa2ration.manufacturer;public final class GenericAospBackend extends PropertyManufacturerBackend {public GenericAospBackend(){super("generic-aosp","aosp","android");}public boolean matches(String signals){return true;}}

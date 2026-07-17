@@ -1,0 +1,2 @@
+package com.xda.sa2ration.automation;
+public final class AutomationContext {public String foregroundPackage="";public int hour;public int minute;public int dayOfWeek;public double ambientLux;public int batteryPercent;public boolean charging;public boolean powerSaver;public double temperatureCelsius;public String orientation="";public boolean externalDisplay;public boolean desktopMode;public boolean game;public boolean video;public boolean hdr;public int brightness;}

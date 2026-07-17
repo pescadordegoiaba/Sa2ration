@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Sa2ration</string>
+    <string name="settings">Settings</string>
+    <string name="reset_feature">Reset feature</string>
+    <string name="backend_value">Backend: %1$s</string>
+    <string name="detecting_environment">Detecting environment…</string>
+    <string name="restore_stable_boot">Restore stable configuration at boot</string>
+    <string name="category_simple">Simple</string>
+    <string name="category_color">Color</string>
+    <string name="category_rgb">RGB</string>
+    <string name="category_display">Display</string>
+    <string name="category_oled">OLED</string>
+    <string name="category_lcd">LCD</string>
+    <string name="category_accessibility">Accessibility</string>
+    <string name="category_profiles">Profiles</string>
+    <string name="category_automation">Automation</string>
+    <string name="category_compatibility">Compatibility</string>
+    <string name="category_advanced">Advanced</string>
+    <string name="temporary_application_title">Temporary application</string>
+    <plurals name="temporary_application_message">
+        <item quantity="one">This configuration may make the display difficult to use. Automatic rollback in %1$d second.</item>
+        <item quantity="other">This configuration may make the display difficult to use. Automatic rollback in %1$d seconds.</item>
+    </plurals>
+    <string name="keep_changes">Keep</string>
+    <string name="revert_changes">Revert</string>
+    <string name="numeric_value_hint">Value</string>
+    <string name="status_supported">Supported</string>
+    <string name="status_unsupported">Unsupported</string>
+    <string name="status_experimental">Experimental</string>
+    <string name="status_prepared">Prepared, backend not available yet</string>
+    <string name="status_requires_module">Requires Companion + compatible adapter</string>
+    <string name="status_requires_adapter">Requires compatible adapter</string>
+    <string name="status_failed">Failed</string>
+    <string name="status_untested">Untested</string>
+    <string name="status_unknown">Unknown</string>
+    <string name="settings_title">Settings</string>
+    <string name="tile_master">Sa2ration</string>
+    <string name="tile_next_profile">Next profile</string>
+    <string name="tile_emergency_reset">Reset Sa2ration</string>
+    <string name="tile_active">Active</string>
+    <string name="tile_neutral">Neutral</string>
+    <string name="back">Back</string>
+    <string name="calibration_title">Calibration and tests</string>
+    <string name="calibration_warning">The pattern also receives the global SurfaceFlinger transform. The Activity preview can differ from the panel’s physical pipeline.</string>
+    <string name="calibration_pattern">Pattern</string>
+    <string name="open_calibration">Open calibration patterns</string>
+    <string-array name="calibration_patterns">
+        <item>SMPTE bars</item><item>Grayscale</item><item>Black clipping</item><item>White clipping</item><item>Gradient and banding</item><item>Primary colors</item><item>OLED test</item><item>LCD test</item>
+    </string-array>
+</resources>

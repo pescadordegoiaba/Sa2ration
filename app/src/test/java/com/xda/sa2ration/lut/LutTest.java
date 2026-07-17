@@ -1,0 +1,3 @@
+package com.xda.sa2ration.lut;
+import org.junit.Test;import static org.junit.Assert.*;
+public final class LutTest {@Test public void neutralGammaIsLinear(){Lut1D lut=Lut1D.gamma(3,1,1,1);assertArrayEquals(new double[]{0,.5,1},lut.red,1e-12);}@Test(expected=IllegalArgumentException.class)public void gammaRejectsNaN(){Lut1D.gamma(16,Double.NaN,1,1);}@Test public void parsesCubeAndReportsMemory(){String cube="TITLE \"tiny\"\nLUT_3D_SIZE 2\n0 0 0\n0 0 1\n0 1 0\n0 1 1\n1 0 0\n1 0 1\n1 1 0\n1 1 1\n";CubeLut3D lut=CubeLut3D.parse(cube);assertEquals(2,lut.size);assertEquals(192,lut.estimatedBytes());}@Test(expected=IllegalArgumentException.class)public void rejectsIncompleteCube(){CubeLut3D.parse("LUT_3D_SIZE 2\n0 0 0");}}

@@ -1,0 +1,111 @@
+#!/system/bin/sh
+
+# On-demand only. This file is never called automatically during Android boot.
+umask 077
+MODDIR=${0%/*}
+MODDIR=${MODDIR%/*}
+ADAPTER_DIR="$MODDIR/adapters/active"
+ADAPTER_CAPABILITIES="$ADAPTER_DIR/capabilities.properties"
+ADAPTER_ENABLE="$ADAPTER_DIR/enabled"
+DISABLE_FILE=/data/adb/sa2ration/companion-disable
+
+adapter_enabled() {
+  [ ! -e "$DISABLE_FILE" ] && [ -f "$ADAPTER_ENABLE" ] && [ -f "$ADAPTER_CAPABILITIES" ]
+}
+
+read_capability() {
+  KEY=$1
+  if adapter_enabled; then
+    VALUE=$(sed -n "s/^${KEY}=//p" "$ADAPTER_CAPABILITIES" | head -n 1)
+    case "$VALUE" in supported|experimental|unsupported) printf '%s' "$VALUE";; *) printf 'unsupported';; esac
+  else
+    printf 'unsupported'
+  fi
+}
+
+adapter_id() {
+  if adapter_enabled; then
+    VALUE=$(sed -n 's/^adapter.id=//p' "$ADAPTER_CAPABILITIES" | head -n 1 | tr -cd 'A-Za-z0-9._-')
+    [ -n "$VALUE" ] && printf '%s' "$VALUE" || printf 'none'
+  else
+    printf 'none'
+  fi
+}
+
+probe() {
+  printf 'schema.version=2\nmodule.installed=true\nmodule.version=1.1.0\n'
+  printf 'module.passive=true\nmodule.bootService=false\n'
+  if adapter_enabled; then printf 'adapter.enabled=true\n'; else printf 'adapter.enabled=false\n'; fi
+  printf 'adapter.id=%s\n' "$(adapter_id)"
+  printf 'gamma=%s\n' "$(read_capability gamma)"
+  printf 'rgbGamma=%s\n' "$(read_capability rgbGamma)"
+  printf 'lut1d=%s\n' "$(read_capability lut1d)"
+  printf 'lut3d=%s\n' "$(read_capability lut3d)"
+  printf 'curves=%s\n' "$(read_capability curves)"
+  if adapter_enabled && [ -x "$ADAPTER_DIR/health" ]; then printf 'adapter.health=available\n'; else printf 'adapter.health=unavailable\n'; fi
+}
+
+require_payload() {
+  PAYLOAD=$1
+  [ -n "$PAYLOAD" ] || return 2
+  [ -f "$PAYLOAD" ] || return 3
+  SIZE=$(wc -c <"$PAYLOAD")
+  [ "$SIZE" -gt 0 ] && [ "$SIZE" -le 67108864 ] || return 4
+}
+
+run_with_timeout() {
+  LIMIT=$1
+  shift
+  if command -v timeout >/dev/null 2>&1; then
+    timeout "${LIMIT}s" "$@"
+    return $?
+  fi
+  "$@" &
+  PID=$!
+  ELAPSED=0
+  while kill -0 "$PID" 2>/dev/null; do
+    if [ "$ELAPSED" -ge "$LIMIT" ]; then
+      kill "$PID" 2>/dev/null || true
+      sleep 1
+      kill -9 "$PID" 2>/dev/null || true
+      wait "$PID" 2>/dev/null
+      return 124
+    fi
+    sleep 1
+    ELAPSED=$((ELAPSED + 1))
+  done
+  wait "$PID"
+}
+
+run_adapter() {
+  OPERATION=$1
+  LIMIT=$2
+  shift 2
+  adapter_enabled || { echo "adapter disabled or not explicitly enabled" >&2; return 21; }
+  case "$OPERATION" in health|apply-lut1d|apply-lut3d|reset) ;; *) echo "invalid adapter operation" >&2; return 22;; esac
+  EXECUTABLE="$ADAPTER_DIR/$OPERATION"
+  [ -f "$EXECUTABLE" ] && [ -x "$EXECUTABLE" ] || { echo "adapter operation unavailable: $OPERATION" >&2; return 20; }
+  run_with_timeout "$LIMIT" "$EXECUTABLE" "$@"
+}
+
+case "$1" in
+  probe|capabilities) probe ;;
+  health)
+    if adapter_enabled && [ -x "$ADAPTER_DIR/health" ]; then run_adapter health 10
+    elif [ -e "$DISABLE_FILE" ]; then echo "module=ok passive=true adapter=disabled-by-safety-file"
+    else echo "module=ok passive=true adapter=unavailable"
+    fi
+    ;;
+  apply-lut1d)
+    require_payload "$2" || exit $?
+    run_adapter apply-lut1d 30 "$2"
+    ;;
+  apply-lut3d)
+    require_payload "$2" || exit $?
+    case "$3" in ''|*[!0-9.]*|*.*.*) echo "invalid intensity" >&2; exit 5;; esac
+    awk -v value="$3" 'BEGIN { exit !(value >= 0 && value <= 1) }' || { echo "intensity must be between 0 and 1" >&2; exit 5; }
+    run_adapter apply-lut3d 60 "$2" "$3"
+    ;;
+  reset) run_adapter reset 10 ;;
+  *) echo "usage: sa2rationctl {probe|health|apply-lut1d FILE|apply-lut3d FILE INTENSITY|reset}" >&2; exit 64 ;;
+esac

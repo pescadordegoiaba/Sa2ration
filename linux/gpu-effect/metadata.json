@@ -1,0 +1,15 @@
+{
+    "KPlugin": {
+        "Authors": [
+            {
+                "Name": "Sa2ration contributors"
+            }
+        ],
+        "Category": "Appearance",
+        "Description": "GPU brightness, contrast and saturation controls for Sa2ration Linux",
+        "EnabledByDefault": false,
+        "License": "GPL-2.0-or-later",
+        "Name": "Sa2ration GPU Color Pipeline",
+        "Version": "2.0.0"
+    }
+}

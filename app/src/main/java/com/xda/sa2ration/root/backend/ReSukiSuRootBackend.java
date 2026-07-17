@@ -1,0 +1,1 @@
+package com.xda.sa2ration.root.backend; import com.xda.sa2ration.root.RootDetectionResult; import com.xda.sa2ration.shell.RootShellExecutor; public final class ReSukiSuRootBackend extends KernelSuRootBackend { public ReSukiSuRootBackend(RootShellExecutor e,RootDetectionResult d){super(e,d);} }

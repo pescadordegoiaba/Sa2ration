@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sa2ration-linux"
+version = "2.0.0"
+description = "Native Qt and Dear ImGui GPU controls for LCD monitors"
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [{name = "Sa2ration contributors"}]
+classifiers = [
+  "Environment :: X11 Applications :: Qt",
+  "Operating System :: POSIX :: Linux",
+  "Programming Language :: C++",
+]
+
+[tool.setuptools]
+packages = []

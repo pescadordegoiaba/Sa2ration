@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Sa2ration Linux
+GenericName=Controle de monitor LCD
+Comment=Brilho, contraste e saturação global processados pela GPU
+Exec=sa2ration-linux
+Icon=io.github.sa2ration.Linux
+Terminal=false
+Categories=Settings;HardwareSettings;Qt;
+Keywords=monitor;display;LCD;brightness;contrast;saturation;GPU;color;
+StartupNotify=true

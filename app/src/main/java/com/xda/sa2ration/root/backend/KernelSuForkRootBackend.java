@@ -1,0 +1,1 @@
+package com.xda.sa2ration.root.backend; import com.xda.sa2ration.root.RootDetectionResult; import com.xda.sa2ration.shell.RootShellExecutor; public final class KernelSuForkRootBackend extends KernelSuRootBackend { public KernelSuForkRootBackend(RootShellExecutor e,RootDetectionResult d){super(e,d);} }

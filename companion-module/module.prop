@@ -1,0 +1,6 @@
+id=sa2ration_companion
+name=Sa2ration Companion
+version=1.1.0
+versionCode=10100
+author=pescadordegoiaba
+description=Backend passivo e extensível para LUT e gama, sem execução automática no boot.

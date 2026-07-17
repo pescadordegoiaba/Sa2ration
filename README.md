@@ -1,263 +1,161 @@
-# Sa2ration Enhanced — controles de cor 0–10×
+# Sa2ration Advanced
 
-Fork do [Sa2ration Enhanced de sansgood](https://github.com/sansgood/Sa2ration),
-derivado do projeto original de
-[zacharee](https://github.com/zacharee/Sa2ration). Esta versão amplia o aplicativo
-com saturação e contraste globais e ajustes independentes para os canais vermelho,
-verde e azul.
+> **Novo: edição 2.0 para Arch Linux e Manjaro.** Um único binário C++ mistura
+> Qt 6 e Dear ImGui, carrega automaticamente o shader GPU nativo do KWin e oferece o switch
+> **Ativar/Desativar** sem passar pelas Configurações do Plasma. A implementação está
+> documentada em [`linux/README.md`](linux/README.md). A versão Android continua
+> independente e não foi substituída.
 
-> **Requer root.** O aplicativo usa interfaces privadas do SurfaceFlinger. Elas
-> existem no Android Open Source Project, mas fabricantes e ROMs customizadas podem
-> alterar, bloquear ou remover essas transações.
+Painel avançado de imagem e display para Android com root. Esta versão preserva a saturação, o contraste, o gerenciamento de cor e a restauração no boot do Sa2ration, mas substitui a lógica monolítica por um pipeline de matrizes 4×4, MVVM, persistência versionada, detecção de ambiente e recuperação automática.
 
-## O que foi adicionado neste fork
+> O backend atual aplica matriz, saturação global e gerenciamento de cor pelas transações legadas `1015`, `1022` e `1023` do SurfaceFlinger. Elas são interfaces privadas e variam entre ROMs. Recursos não lineares mostram separadamente “requer Companion + adaptador” ou “requer adaptador”; o módulo sozinho não cria suporte. O aplicativo não tenta adivinhar comandos sysfs.
 
-- Saturação global configurável de `0.00×` a `10.00×`.
-- Contraste global configurável de `0.00×` a `10.00×`.
-- Saturação independente para vermelho, verde e azul, cada uma de `0.00×` a
-  `10.00×`.
-- Contraste independente para vermelho, verde e azul, cada um de `0.00×` a
-  `10.00×`.
-- Slider com resolução de `0.01` e campo numérico para todos os oito ajustes.
-- Sincronização bidirecional: mover um slider atualiza o input; digitar no input
-  atualiza o slider.
-- Validação dos inputs e limitação automática ao intervalo de `0–10×`.
-- Interface rolável, necessária para acomodar todos os controles em telas menores.
-- Matriz de transformação de cor 4×4 para contraste e controles por canal.
-- Salvamento de todos os parâmetros no armazenamento privado do aplicativo.
-- Restauração dos parâmetros depois da reinicialização do Android.
-- Reset completo de todos os multiplicadores para `1.00×`.
-- Testes unitários para a geração e serialização da matriz de cor.
-- Toolchain atualizado para Gradle 8.9, Android Gradle Plugin 8.7.3, AndroidX e
-  `compileSdk`/`targetSdk` 35.
-- Gradle Wrapper completo (`gradlew`, `gradlew.bat` e `gradle-wrapper.jar`) para
-  builds reproduzíveis sem uma instalação global do Gradle.
+## O que funciona nesta versão
 
-## Controles disponíveis
+- saturação e contraste global e por canal, com slider prático até `10×` e entrada manual ampla;
+- brilho digital global/RGB, nível de preto, nível de branco, ganho e offset RGB;
+- temperatura de cor, tint verde–magenta, rotação de matiz e misturador 3×3;
+- grayscale Rec. 601/709/2020/média, inversão global/por canal e filtros lineares;
+- matriz personalizada 4×4 e exibição/cópia da matriz final composta;
+- switches individuais: desligar um estágio o remove do pipeline e restaura seu efeito neutro;
+- confirmação de mudanças perigosas por 15 segundos, último estado estável e rollback;
+- detecção heurística de LCD/OLED/AMOLED e seleção manual apenas para organizar a interface;
+- detecção funcional de root e classificação de Magisk, KernelSU, SukiSU Ultra, ReSukiSU e APatch;
+- perfis padrão e personalizados em JSON versionado, com importação/exportação;
+- tiles de liga/desliga, próximo perfil e reset de emergência;
+- restauração segura no boot usando WorkManager;
+- relatório diagnóstico TXT/JSON e tela de configurações com Root, Painel, Backend, Segurança, Persistência, Inicialização, Diagnóstico, Logs e Sobre;
+- Material 3 edge-to-edge com insets de status bar, navbar, recorte e teclado;
+- controles responsivos para tela compacta e fonte ampliada;
+- padrões SMPTE, grayscale, clipping, gradiente, OLED e LCD;
+- módulo complementar passivo para Magisk, KernelSU/SukiSU/ReSukiSU e APatch, sem script executado no boot.
 
-| Grupo | Controle | Intervalo | Padrão |
-| --- | --- | ---: | ---: |
-| Global | Saturação | 0.00–10.00× | 1.00× |
-| Global | Contraste | 0.00–10.00× | 1.00× |
-| Saturação por cor | Vermelho | 0.00–10.00× | 1.00× |
-| Saturação por cor | Verde | 0.00–10.00× | 1.00× |
-| Saturação por cor | Azul | 0.00–10.00× | 1.00× |
-| Contraste por cor | Vermelho | 0.00–10.00× | 1.00× |
-| Contraste por cor | Verde | 0.00–10.00× | 1.00× |
-| Contraste por cor | Azul | 0.00–10.00× | 1.00× |
+## Interface
 
-`1.00×` é neutro. Em saturação, `0.00×` converte o componente correspondente para
-luminância; em contraste, `0.00×` produz um valor uniforme no ponto médio. Valores
-acima de `1.00×` intensificam o efeito. Os controles globais e por canal são
-combinados; portanto, utilizar valores altos nos dois níveis produz um efeito
-acumulado muito forte e pode causar clipping de cores.
+As seis abas visíveis são: **Simples**, **Cor**, **RGB**, **Perfis**, **Compatibilidade** e **Avançado**. Páginas que continham apenas placeholders de Tela/OLED/LCD/Automação foram consolidadas em Compatibilidade, sem fingir que eram controles funcionais. Cada página usa `NestedScrollView`; recursos avançados usam cards com descrição, switch, controles e reset. Desligar o switch oculta os modificadores e recompõe a matriz sem o estágio.
 
-O switch **Enable Color Management** mantém o comportamento do projeto anterior e
-alterna o modo de cor do SurfaceFlinger.
+A aba Simples mantém somente liga/desliga geral, saturação, contraste, brilho digital, temperatura, perfil, Aplicar, Resetar, Antes/Depois e backend.
 
-## Como funciona
+## Pipeline linear
 
-### 1. Inicialização e interface
-
-`MainActivity.java` carrega os valores salvos, converte cada multiplicador para a
-escala interna do slider (`0–1000`) e conecta cada slider ao seu respectivo campo
-numérico. O progresso `100` corresponde a `1.00×`; cada unidade corresponde a
-`0.01×`.
-
-Ao soltar um slider ou confirmar/sair de um campo numérico, o aplicativo monta e
-aplica a configuração completa. Isso evita executar um comando root para cada
-pequeno evento de digitação.
-
-### 2. Saturação global
-
-A saturação global continua usando o caminho nativo empregado pelo projeto
-original:
-
-```shell
-setprop persist.sys.sf.color_saturation VALOR
-service call SurfaceFlinger 1022 f VALOR
-```
-
-A propriedade persistente ajuda o SurfaceFlinger a recuperar o valor, enquanto a
-transação `1022` aplica a mudança imediatamente.
-
-### 3. Contraste e ajustes por canal
-
-`ColorMatrixController.java` cria uma matriz 4×4 em formato **column-major**, como
-esperado pela transação `1015` do SurfaceFlinger. A matriz usa os coeficientes de
-luminância Rec. 709/sRGB:
+A ordem é fixa e testada:
 
 ```text
-Y = 0.2126R + 0.7152G + 0.0722B
+identidade → temperatura → tint → ganho RGB → offset RGB
+→ misturador → matiz → saturação RGB → contraste global/RGB
+→ brilho digital → nível de preto → nível de branco
+→ grayscale → inversão → filtro → matriz personalizada
 ```
 
-Para cada canal de saída, a saturação mistura o canal original com a luminância. O
-contraste é aplicado em torno do ponto médio `0.5`, usando a forma:
+A saturação global continua na transação nativa `1022`. As demais transformações lineares são multiplicadas corretamente em formato column-major para a transação `1015`. Com o master ou todos os efeitos desligados, o resultado é identidade e saturação `1.0`.
 
-```text
-saída = contraste × entrada + 0.5 × (1 - contraste)
-```
+Gama real, curvas e LUT não são falsamente aproximadas por matriz. O Sa2ration Companion fornece um controlador root somente sob demanda e só anuncia/aplica uma operação quando existe um adaptador validado e explicitamente ativado para o hardware. Não existe `service.sh`, `post-fs-data.sh`, propriedade persistente, overlay de sistema ou execução automática no boot.
 
-O contraste global multiplica o contraste específico de cada canal. Depois de
-compor todos os parâmetros, a matriz é serializada e enviada como 16 floats:
+## Root e painel
 
-```shell
-service call SurfaceFlinger 1015 i32 1 f M0 f M1 ... f M15
-```
+Root só é considerado funcional quando `su -c id -u` conclui, sem timeout, e stdout é exatamente `0`. `su -v`, `su -V`, executáveis, propriedades, mounts, daemons e strings conhecidas formam evidências com confiança; a preferência manual nunca transforma um acesso não funcional em funcional.
 
-Essa abordagem permite tratar vermelho, verde e azul separadamente sem modificar
-o framework ou a ROM do aparelho.
+O tipo do painel é inferido por `DisplayManager`, modos do display, propriedades, dumpsys e caminhos DRM/backlight/device-tree lidos via root. Nome de painel, existência de backlight e tokens específicos possuem pesos; a marca sozinha não classifica o painel. A seleção manual só muda as categorias visuais — comandos físicos ainda exigem capacidade confirmada.
 
-### 4. Root e execução dos comandos
+Detalhes Android: [auditoria funcional](docs/FUNCTIONAL_AUDIT.md), [arquitetura](docs/ARCHITECTURE.md), [módulo complementar](docs/COMPANION_MODULE.md), [detecção de root](docs/ROOT_DETECTION.md), [detecção de painel](docs/PANEL_DETECTION.md), [compatibilidade](docs/COMPATIBILITY.md) e [recuperação](docs/RECOVERY.md).
 
-`CommandController.java` abre um processo `su`, envia os comandos ao shell root e
-aguarda sua conclusão. Na abertura do aplicativo, um teste de `su` é executado. Se
-o root não estiver disponível ou não for autorizado, o aplicativo mostra um aviso
-e encerra.
+Detalhes Linux: [arquitetura Qt + ImGui](docs/LINUX_ARCHITECTURE.md), [pipeline GPU](docs/LINUX_GPU_PIPELINE.md) e [instalação e recuperação](docs/LINUX_INSTALLATION_RECOVERY.md).
 
-### 5. Salvamento e restauração
+## Perfis e automação
 
-`PersistenceController.java` grava os valores em `info.properties`, dentro do
-armazenamento privado do aplicativo. Os valores são salvos ao pausar a Activity e
-também quando o botão **Save** é pressionado.
+Os 16 presets são Neutro, Natural, sRGB, Vívido, AMOLED, LCD, Filme, Fotografia, Leitura, Noturno, Jogos, FPS, Baixa luminosidade, Escala de cinza, Economia OLED e Externo. O documento armazena configuração, painel, backend, modo de cor, brilho/taxa opcionais, automações, criação e versão.
 
-`NewBootReceiver.java` recebe `BOOT_COMPLETED`, restaura os oito multiplicadores,
-reconstrói a matriz e reaplica a saturação global, a matriz por canal e o modo de
-cor. A permissão `RECEIVE_BOOT_COMPLETED` está declarada no manifest.
+O motor de prioridades para aplicação, horário, dia, luz, bateria, carregamento, economia, temperatura, orientação, display externo, desktop, jogo, vídeo, HDR e brilho está implementado e testado. A observação contínua dos eventos ainda é parcial: não se afirma automação ativa quando a ROM não fornece sinal confiável. Um perfil por aplicativo sempre altera a transformação global enquanto aquele app está em primeiro plano; não é isolamento por layer.
 
-### 6. Reset
+## Compatibilidade resumida
 
-O botão **Reset** retorna saturação e contraste, globais e por canal, para `1.00×`,
-reaplica a matriz identidade e salva os valores padrão.
+| Recurso | Estado atual |
+| --- | --- |
+| Matriz 4×4 / saturação / gerenciamento de cor | Backend real legado; validar no aparelho |
+| Controles lineares e filtros | Implementados no pipeline |
+| Root genérico/Magisk/KSU/forks/APatch | Execução genérica real + classificação heurística |
+| Painel LCD/OLED/AMOLED | Detecção heurística + override visual |
+| Perfis / backup / tiles / boot | Implementados |
+| Gama, LUT 1D/3D e curvas | Requer Companion + adaptador vendor validado e ativado |
+| Brilho físico, HBM, DC dimming, PWM, CABC, MEMC | Somente capacidade/estado indisponível |
+| Refresh rate, resolução e DPI | Arquitetura preparada; backend de escrita não habilitado |
+| Samsung/Qualcomm/MediaTek/Exynos/OEMs | Adaptadores de detecção; nenhuma escrita desconhecida |
 
-## Estrutura principal
+## Build
 
-```text
-app/src/main/
-├── AndroidManifest.xml
-├── java/com/xda/sa2ration/
-│   ├── MainActivity.java             # interface, inputs e fluxo principal
-│   ├── ColorMatrixController.java    # cálculo e serialização da matriz 4×4
-│   ├── CommandController.java        # execução de comandos com su
-│   ├── PersistenceController.java    # armazenamento privado dos parâmetros
-│   └── NewBootReceiver.java          # reaplicação depois do boot
-└── res/layout/content_main.xml       # interface rolável e seus oito controles
-
-app/src/test/java/com/xda/sa2ration/
-└── ColorMatrixControllerTest.java    # testes unitários da transformação
-```
-
-## Requisitos para compilar
-
-- Linux, macOS ou Windows.
-- JDK 17 ou mais recente compatível com Gradle 8.9.
-- Android SDK Platform 35.
-- Android SDK Build Tools instaladas.
-- Acesso à internet no primeiro build para baixar dependências, caso elas ainda
-  não estejam no cache do Gradle.
-
-Defina `ANDROID_HOME` ou `ANDROID_SDK_ROOT` para o diretório do Android SDK. O
-Android Studio também pode abrir o diretório raiz e sincronizar o projeto.
-
-## Como compilar
-
-Clone este fork:
+Requisitos: JDK 17, Android SDK Platform 35 e acesso às dependências Gradle na primeira sincronização. O projeto usa Gradle Wrapper 8.9, AGP 8.7.3, `minSdk 24`, `compileSdk 35` e `targetSdk 35`.
 
 ```shell
 git clone https://github.com/pescadordegoiaba/Sa2ration.git
 cd Sa2ration
+./gradlew clean
+./gradlew test
+./gradlew lintDebug
+./gradlew assembleDebug
+./gradlew packageCompanionModule
 ```
 
-No Linux ou macOS:
-
-```shell
-chmod +x gradlew
-./gradlew test lintDebug assembleDebug
-```
-
-No Windows:
-
-```powershell
-.\gradlew.bat test lintDebug assembleDebug
-```
-
-O APK de debug será criado em:
+No Windows use `gradlew.bat`. O APK é gerado em:
 
 ```text
 app/build/outputs/apk/debug/app-debug.apk
+build/outputs/module/Sa2ration-Companion-1.1.0.zip
 ```
 
-Para compilar apenas o APK:
-
-```shell
-./gradlew assembleDebug
-```
-
-Para limpar todos os arquivos gerados:
-
-```shell
-./gradlew clean
-```
-
-## Como instalar
-
-Ative a depuração USB, conecte o aparelho e execute:
+Instalação:
 
 ```shell
 adb install -r app/build/outputs/apk/debug/app-debug.apk
 ```
 
-Abra o aplicativo e conceda acesso root quando o gerenciador de root solicitar.
-Magisk, KernelSU, APatch ou outra solução equivalente deve fornecer um comando
-`su` funcional.
+Abra o aplicativo, autorize root e confira **Configurações → Diagnóstico** antes de aplicar valores extremos.
 
-O arquivo `app/release/app-release.apk` existente no histórico veio do projeto
-anterior e **não representa as alterações deste fork**. Compile o código atual com
-o Gradle Wrapper para obter a versão atualizada.
+## Recuperação rápida
 
-## Testes e validação
-
-O código atual foi validado com:
+- use o tile **Reset Sa2ration**;
+- na tela de configurações, toque em **Restaurar display neutro**;
+- aguarde 15 segundos sem confirmar para rollback automático;
+- via ADB shell/root:
 
 ```shell
-./gradlew test assembleDebug lintDebug
+adb shell am broadcast -a com.xda.sa2ration.action.ADB_RESET_DISPLAY -n com.xda.sa2ration/.recovery.AdbResetReceiver
 ```
 
-Os testes cobrem:
+- para impedir restauração no próximo boot:
 
-- matriz identidade com todos os valores em `1.00×`;
-- conversão para luminância com saturação zero;
-- contraste global até `10.00×` em torno do ponto médio;
-- independência do contraste por canal;
-- limitação de valores inválidos ou fora do intervalo;
-- serialização dos 16 floats para a transação do SurfaceFlinger.
+```shell
+adb shell su -c 'mkdir -p /data/adb/sa2ration && touch /data/adb/sa2ration/disable'
+```
 
-O APK de debug também foi verificado com `apksigner` e possui assinatura Android
-Debug válida pelo esquema APK Signature Scheme v2.
+ou:
 
-## Compatibilidade e limitações
+```shell
+adb shell su -c 'setprop persist.sa2ration.safe_mode 1'
+```
 
-- É obrigatório possuir root e autorizar o aplicativo no gerenciador de root.
-- As transações `1015`, `1022` e `1023` são interfaces privadas; a compatibilidade
-  depende da versão do Android, do fabricante e da ROM.
-- Valores muito altos podem causar clipping, perda de detalhes e cores extremas.
-- A matriz `1015` é compartilhada com recursos de cor do sistema. Night Light,
-  correção de cores, acessibilidade ou outro aplicativo podem substituir a matriz;
-  nesse caso, pressione **Save** ou altere um controle para reaplicá-la.
-- O efeito real precisa ser validado no aparelho-alvo. O build e os cálculos são
-  testados no host, mas não existe um teste automatizado que confirme o resultado
-  visual de cada compositor/OEM.
-- O aplicativo transforma a saída completa do SurfaceFlinger; não há seleção por
-  aplicativo ou por display.
+Consulte [RECOVERY.md](docs/RECOVERY.md) para reset direto e reativação.
+
+## Limitações importantes
+
+- o resultado visual e os códigos privados do SurfaceFlinger precisam de teste no hardware/ROM alvo;
+- o preview da Activity pode diferir do resultado global do compositor;
+- valores extremos podem causar clipping, tela branca/escura ou dominante forte;
+- a seleção manual de painel/root não ignora verificações funcionais;
+- não há escrita ativa em sysfs vendor, ciclos de compensação OLED ou controladores do painel;
+- gama/LUT real requer Companion e adaptador compatível ativado; o módulo base é passivo e não inventa comandos;
+- automações, refresh rate, resolução, DPI e controles físicos OEM permanecem preparados, mas não são exibidos como opções funcionais;
+- automação contínua permanece parcial; os padrões essenciais de calibração estão implementados.
 
 ## Desenvolvimento
 
-Antes de enviar mudanças, execute:
+Antes de publicar:
 
 ```shell
-./gradlew test lintDebug assembleDebug
+./gradlew clean
+./gradlew test
+./gradlew lintDebug
+./gradlew assembleDebug
 git diff --check
 ```
 
-Arquivos gerados em `app/build/`, `.gradle/`, configurações locais do Android SDK e
-arquivos específicos do Android Studio não devem ser versionados.
+O APK antigo em `app/release` é um binário histórico e não é alterado por este trabalho.
