@@ -133,7 +133,8 @@ public final class DisplayViewModel extends AndroidViewModel {
 
     public void createProfile(String name) {
         DisplayUiState current=state.getValue();if(current==null||current.loading)return;
-        io.execute(()->{DisplayProfile created=profileRepository.create(name,current.configuration);profiles=profileRepository.load();post(created.configuration,false,false,0,"Perfil criado: "+created.name);});
+        DisplayConfiguration source=current.configuration.copy();
+        io.execute(()->{DisplayProfile created=profileRepository.create(name,source);profiles=profileRepository.load();DisplayConfiguration active=created.configuration.copy();repository.saveCurrent(active);post(active,false,false,0,"Perfil criado: "+created.name);});
     }
 
     public void duplicateProfile(String id){io.execute(()->{DisplayProfile created=profileRepository.duplicate(id);profiles=profileRepository.load();DisplayUiState current=state.getValue();if(current!=null)post(current.configuration,false,false,0,created==null?"Perfil não encontrado":"Perfil duplicado");});}

@@ -1,0 +1,41 @@
+# Maintainer: Sa2ration contributors
+pkgname=sa2ration-linux
+pkgver=2.0.0
+pkgrel=1
+pkgdesc="Native Qt and Dear ImGui GPU controls for LCD monitors"
+arch=('x86_64')
+url="https://github.com/pescadordegoiaba/Sa2ration"
+license=('LicenseRef-Sa2ration' 'GPL-2.0-or-later' 'MIT')
+depends=('qt6-base' 'hicolor-icon-theme' 'kwin=6.7.2')
+optdepends=(
+  'ddcutil: future physical brightness and contrast integration'
+)
+makedepends=('cmake' 'extra-cmake-modules')
+source=("$pkgname-$pkgver.tar.gz")
+sha256sums=('SKIP')
+
+build() {
+  cd "$srcdir/sa2ration_linux-$pkgver"
+  cmake -S native-app -B build-native \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_INSTALL_PREFIX=/usr
+  cmake --build build-native --parallel
+  cmake -S gpu-effect -B build-gpu \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_INSTALL_PREFIX=/usr
+  cmake --build build-gpu --parallel
+}
+
+package() {
+  cd "$srcdir/sa2ration_linux-$pkgver"
+  DESTDIR="$pkgdir" cmake --install build-native
+  DESTDIR="$pkgdir" cmake --install build-gpu
+  install -Dm644 resources/io.github.sa2ration.Linux.desktop \
+    "$pkgdir/usr/share/applications/io.github.sa2ration.Linux.desktop"
+  install -Dm644 resources/io.github.sa2ration.Linux.svg \
+    "$pkgdir/usr/share/icons/hicolor/scalable/apps/io.github.sa2ration.Linux.svg"
+  install -Dm644 README.md "$pkgdir/usr/share/doc/$pkgname/README.md"
+  install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+  install -Dm644 gpu-effect/LICENSE "$pkgdir/usr/share/licenses/$pkgname/GPU-EFFECT-LICENSE"
+  install -Dm644 third_party/imgui/LICENSE.txt "$pkgdir/usr/share/licenses/$pkgname/IMGUI-LICENSE"
+}

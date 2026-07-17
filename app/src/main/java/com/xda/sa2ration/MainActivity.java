@@ -43,7 +43,7 @@ public final class MainActivity extends AppCompatActivity {
     }
 
     private void renderState(DisplayUiState state){
-        if(!state.loading&&binding.pager.getAdapter()==null){DashboardPagerAdapter adapter=new DashboardPagerAdapter(this,state.panel);binding.pager.setAdapter(adapter);binding.pager.setOffscreenPageLimit(1);new TabLayoutMediator(binding.tabs,binding.pager,(tab,position)->tab.setText(adapter.category(position).titleRes)).attach();}
+        if(!state.loading&&binding.pager.getAdapter()==null){DashboardPagerAdapter adapter=new DashboardPagerAdapter(this);binding.pager.setAdapter(adapter);binding.pager.setOffscreenPageLimit(1);new TabLayoutMediator(binding.tabs,binding.pager,(tab,position)->tab.setText(adapter.category(position).titleRes)).attach();}
         if(state.awaitingConfirmation)showSafetyDialog(state.countdownSeconds);else if(safetyDialog!=null){safetyDialog.dismiss();safetyDialog=null;}
         if(!state.message.isEmpty()&&!state.message.equals(lastMessage)&&!state.awaitingConfirmation){lastMessage=state.message;Toast.makeText(this,state.message,Toast.LENGTH_SHORT).show();}
     }

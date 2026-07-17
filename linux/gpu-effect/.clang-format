@@ -1,0 +1,18 @@
+# SPDX-License-Identifier: MIT
+Language: Cpp
+Standard: c++20
+BasedOnStyle: WebKit
+TabWidth: 4
+ColumnLimit: 0
+SortIncludes: true
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterClass: true
+  AfterControlStatement: false
+  AfterFunction: true
+  AfterNamespace: true
+  AfterStruct: true
+  BeforeElse: false
+PointerAlignment: Right
+NamespaceIndentation: None
+InsertBraces: true

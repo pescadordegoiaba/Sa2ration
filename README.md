@@ -1,8 +1,14 @@
 # Sa2ration Advanced
 
+> **Novo: edição 2.0 para Arch Linux e Manjaro.** Um único binário C++ mistura
+> Qt 6 e Dear ImGui, carrega automaticamente o shader GPU nativo do KWin e oferece o switch
+> **Ativar/Desativar** sem passar pelas Configurações do Plasma. A implementação está
+> documentada em [`linux/README.md`](linux/README.md). A versão Android continua
+> independente e não foi substituída.
+
 Painel avançado de imagem e display para Android com root. Esta versão preserva a saturação, o contraste, o gerenciamento de cor e a restauração no boot do Sa2ration, mas substitui a lógica monolítica por um pipeline de matrizes 4×4, MVVM, persistência versionada, detecção de ambiente e recuperação automática.
 
-> O backend atual realmente aplica matriz, saturação global e gerenciamento de cor pelas transações legadas `1015`, `1022` e `1023` do SurfaceFlinger. Elas são interfaces privadas e variam entre ROMs. Controles sem backend comprovado aparecem como indisponíveis, não testados, experimentais ou “requer módulo”; o aplicativo não tenta adivinhar comandos sysfs.
+> O backend atual aplica matriz, saturação global e gerenciamento de cor pelas transações legadas `1015`, `1022` e `1023` do SurfaceFlinger. Elas são interfaces privadas e variam entre ROMs. Recursos não lineares mostram separadamente “requer Companion + adaptador” ou “requer adaptador”; o módulo sozinho não cria suporte. O aplicativo não tenta adivinhar comandos sysfs.
 
 ## O que funciona nesta versão
 
@@ -22,11 +28,11 @@ Painel avançado de imagem e display para Android com root. Esta versão preserv
 - Material 3 edge-to-edge com insets de status bar, navbar, recorte e teclado;
 - controles responsivos para tela compacta e fonte ampliada;
 - padrões SMPTE, grayscale, clipping, gradiente, OLED e LCD;
-- módulo complementar instalável para Magisk, KernelSU/SukiSU/ReSukiSU e APatch.
+- módulo complementar passivo para Magisk, KernelSU/SukiSU/ReSukiSU e APatch, sem script executado no boot.
 
 ## Interface
 
-As abas são: **Simples**, **Cor**, **RGB**, **Tela**, **OLED**, **LCD**, **Acessibilidade**, **Perfis**, **Automação**, **Compatibilidade** e **Avançado**. OLED/LCD são exibidas conforme detecção ou seleção manual. Cada página usa `NestedScrollView`; recursos avançados usam cards com descrição, switch, controles e reset. Desligar o switch oculta os modificadores e recompõe a matriz sem o estágio.
+As seis abas visíveis são: **Simples**, **Cor**, **RGB**, **Perfis**, **Compatibilidade** e **Avançado**. Páginas que continham apenas placeholders de Tela/OLED/LCD/Automação foram consolidadas em Compatibilidade, sem fingir que eram controles funcionais. Cada página usa `NestedScrollView`; recursos avançados usam cards com descrição, switch, controles e reset. Desligar o switch oculta os modificadores e recompõe a matriz sem o estágio.
 
 A aba Simples mantém somente liga/desliga geral, saturação, contraste, brilho digital, temperatura, perfil, Aplicar, Resetar, Antes/Depois e backend.
 
@@ -43,7 +49,7 @@ identidade → temperatura → tint → ganho RGB → offset RGB
 
 A saturação global continua na transação nativa `1022`. As demais transformações lineares são multiplicadas corretamente em formato column-major para a transação `1015`. Com o master ou todos os efeitos desligados, o resultado é identidade e saturação `1.0`.
 
-Gama real, curvas e LUT não são falsamente aproximadas por matriz. O Sa2ration Companion fornece protocolo e serviço root, mas só anuncia/aplica uma operação quando existe um adaptador validado para o hardware.
+Gama real, curvas e LUT não são falsamente aproximadas por matriz. O Sa2ration Companion fornece um controlador root somente sob demanda e só anuncia/aplica uma operação quando existe um adaptador validado e explicitamente ativado para o hardware. Não existe `service.sh`, `post-fs-data.sh`, propriedade persistente, overlay de sistema ou execução automática no boot.
 
 ## Root e painel
 
@@ -51,7 +57,9 @@ Root só é considerado funcional quando `su -c id -u` conclui, sem timeout, e s
 
 O tipo do painel é inferido por `DisplayManager`, modos do display, propriedades, dumpsys e caminhos DRM/backlight/device-tree lidos via root. Nome de painel, existência de backlight e tokens específicos possuem pesos; a marca sozinha não classifica o painel. A seleção manual só muda as categorias visuais — comandos físicos ainda exigem capacidade confirmada.
 
-Detalhes: [arquitetura](docs/ARCHITECTURE.md), [módulo complementar](docs/COMPANION_MODULE.md), [detecção de root](docs/ROOT_DETECTION.md), [detecção de painel](docs/PANEL_DETECTION.md), [compatibilidade](docs/COMPATIBILITY.md) e [recuperação](docs/RECOVERY.md).
+Detalhes Android: [auditoria funcional](docs/FUNCTIONAL_AUDIT.md), [arquitetura](docs/ARCHITECTURE.md), [módulo complementar](docs/COMPANION_MODULE.md), [detecção de root](docs/ROOT_DETECTION.md), [detecção de painel](docs/PANEL_DETECTION.md), [compatibilidade](docs/COMPATIBILITY.md) e [recuperação](docs/RECOVERY.md).
+
+Detalhes Linux: [arquitetura Qt + ImGui](docs/LINUX_ARCHITECTURE.md), [pipeline GPU](docs/LINUX_GPU_PIPELINE.md) e [instalação e recuperação](docs/LINUX_INSTALLATION_RECOVERY.md).
 
 ## Perfis e automação
 
@@ -68,7 +76,7 @@ O motor de prioridades para aplicação, horário, dia, luz, bateria, carregamen
 | Root genérico/Magisk/KSU/forks/APatch | Execução genérica real + classificação heurística |
 | Painel LCD/OLED/AMOLED | Detecção heurística + override visual |
 | Perfis / backup / tiles / boot | Implementados |
-| Gama, LUT 1D/3D e curvas | Companion implementado; requer adaptador vendor validado |
+| Gama, LUT 1D/3D e curvas | Requer Companion + adaptador vendor validado e ativado |
 | Brilho físico, HBM, DC dimming, PWM, CABC, MEMC | Somente capacidade/estado indisponível |
 | Refresh rate, resolução e DPI | Arquitetura preparada; backend de escrita não habilitado |
 | Samsung/Qualcomm/MediaTek/Exynos/OEMs | Adaptadores de detecção; nenhuma escrita desconhecida |
@@ -91,7 +99,7 @@ No Windows use `gradlew.bat`. O APK é gerado em:
 
 ```text
 app/build/outputs/apk/debug/app-debug.apk
-build/outputs/module/Sa2ration-Companion-1.0.0.zip
+build/outputs/module/Sa2ration-Companion-1.1.0.zip
 ```
 
 Instalação:
@@ -134,7 +142,8 @@ Consulte [RECOVERY.md](docs/RECOVERY.md) para reset direto e reativação.
 - valores extremos podem causar clipping, tela branca/escura ou dominante forte;
 - a seleção manual de painel/root não ignora verificações funcionais;
 - não há escrita ativa em sysfs vendor, ciclos de compensação OLED ou controladores do painel;
-- gama/LUT real requer adaptador compatível dentro do Companion; o módulo base não inventa comandos;
+- gama/LUT real requer Companion e adaptador compatível ativado; o módulo base é passivo e não inventa comandos;
+- automações, refresh rate, resolução, DPI e controles físicos OEM permanecem preparados, mas não são exibidos como opções funcionais;
 - automação contínua permanece parcial; os padrões essenciais de calibração estão implementados.
 
 ## Desenvolvimento

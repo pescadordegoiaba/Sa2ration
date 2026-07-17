@@ -1,6 +1,3 @@
 #!/system/bin/sh
-MODDIR=${0%/*}
-if [ -x "$MODDIR/adapters/active/reset" ]; then
-  "$MODDIR/adapters/active/reset" >/dev/null 2>&1
-fi
+# Removal can be processed by the root manager during boot. Never invoke an adapter here.
 rm -rf /data/adb/sa2ration/companion

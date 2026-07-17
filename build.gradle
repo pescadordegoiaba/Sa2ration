@@ -27,16 +27,41 @@ task clean(type: Delete) {
     delete rootProject.buildDir
 }
 
+tasks.register('verifyCompanionModuleSafety') {
+    group = 'verification'
+    description = 'Falha se o Companion deixar de ser passivo ou ganhar hooks de boot perigosos.'
+    doLast {
+        File root = file('companion-module')
+        ['service.sh', 'post-fs-data.sh', 'system.prop', 'sepolicy.rule', 'system'].each { path ->
+            if (new File(root, path).exists()) throw new GradleException("Companion passivo não pode conter ${path}")
+        }
+        ['skip_mount', 'module.prop', 'customize.sh', 'action.sh', 'uninstall.sh', 'bin/sa2rationctl'].each { path ->
+            if (!new File(root, path).exists()) throw new GradleException("Arquivo obrigatório ausente: ${path}")
+        }
+        Properties module = new Properties()
+        new File(root, 'module.prop').withInputStream { module.load(it) }
+        if (module.getProperty('version') != '1.1.0') throw new GradleException('Versão passiva esperada: 1.1.0')
+        String cli = new File(root, 'bin/sa2rationctl').getText('UTF-8')
+        if (!cli.contains('module.passive=true') || !cli.contains('module.bootService=false')) {
+            throw new GradleException('Probe do Companion deve declarar modo passivo e ausência de serviço de boot')
+        }
+        ['setprop ', 'service call', '/sys/', 'resetprop', 'magiskpolicy', 'insmod ', 'modprobe '].each { token ->
+            if (cli.contains(token)) throw new GradleException("Controlador base contém operação proibida: ${token}")
+        }
+    }
+}
+
 tasks.register('packageCompanionModule', Zip) {
+    dependsOn tasks.named('verifyCompanionModuleSafety')
     group = 'distribution'
     description = 'Empacota o módulo complementar para Magisk, KernelSU e APatch.'
-    archiveFileName = 'Sa2ration-Companion-1.0.0.zip'
+    archiveFileName = 'Sa2ration-Companion-1.1.0.zip'
     destinationDirectory = layout.buildDirectory.dir('outputs/module')
     from('companion-module')
     preserveFileTimestamps = false
     reproducibleFileOrder = true
     eachFile { details ->
-        if (details.path in ['customize.sh', 'service.sh', 'action.sh', 'uninstall.sh', 'bin/sa2rationctl']) {
+        if (details.path in ['customize.sh', 'action.sh', 'uninstall.sh', 'bin/sa2rationctl']) {
             details.permissions { permissions -> permissions.unix('rwxr-xr-x') }
         }
     }

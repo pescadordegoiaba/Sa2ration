@@ -1,6 +1,6 @@
 id=sa2ration_companion
 name=Sa2ration Companion
-version=1.0.0
-versionCode=10000
+version=1.1.0
+versionCode=10100
 author=pescadordegoiaba
-description=Backend seguro e extensível para LUT, gama e controles vendor do Sa2ration.
+description=Backend passivo e extensível para LUT e gama, sem execução automática no boot.

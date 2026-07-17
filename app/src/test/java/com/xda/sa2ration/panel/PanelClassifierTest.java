@@ -11,4 +11,5 @@ public class PanelClassifierTest {
     @Test public void detectsMiniLed(){assertEquals(PanelTechnology.MINI_LED,PanelClassifier.classify("mini-led local dimming").detectedTechnology);}
     @Test public void brandAloneDoesNotClassify(){assertEquals(PanelTechnology.UNKNOWN,PanelClassifier.classify("manufacturer=samsung").detectedTechnology);}
     @Test public void unknownEvidenceStaysUnknown(){assertEquals(PanelTechnology.UNKNOWN,PanelClassifier.classify("generic display dsi").detectedTechnology);}
+    @Test public void strongerOledEvidenceIsNotOverriddenByWeakerIpsToken(){assertEquals(PanelTechnology.AMOLED,PanelClassifier.classify("panel=amoled diagnostic mentions ips mode").detectedTechnology);}
 }

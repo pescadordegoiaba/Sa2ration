@@ -1,0 +1,13 @@
+/build/
+/dist/
+/src/*.egg-info/
+/sa2ration_linux.egg-info/
+/src/**/__pycache__/
+/tests/__pycache__/
+/packaging/pkg/
+/packaging/src/
+/packaging/*.pkg.tar.zst
+/packaging/*.tar.gz
+/gpu-effect/build/
+/build-native/
+/build-gpu-native-check/

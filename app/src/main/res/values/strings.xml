@@ -28,7 +28,9 @@
     <string name="status_supported">Suportado</string>
     <string name="status_unsupported">Não suportado</string>
     <string name="status_experimental">Experimental</string>
-    <string name="status_requires_module">Requer módulo complementar</string>
+    <string name="status_prepared">Preparado, ainda sem backend</string>
+    <string name="status_requires_module">Requer Companion + adaptador compatível</string>
+    <string name="status_requires_adapter">Requer adaptador compatível</string>
     <string name="status_failed">Falhou</string>
     <string name="status_untested">Não testado</string>
     <string name="status_unknown">Desconhecido</string>

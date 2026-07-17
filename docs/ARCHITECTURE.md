@@ -26,8 +26,10 @@ O switch desligado preserva o valor editado em `DisplayConfiguration`, mas o est
 
 ## Capacidade antes de comando
 
-`BackendCapabilities` classifica SUPPORTED, UNSUPPORTED, EXPERIMENTAL, UNTESTED, REQUIRES_MODULE, FAILED e UNKNOWN. Adaptadores OEM nunca habilitam escrita somente por fabricante/modelo. Uma futura operação física deverá comprovar caminho, formato, intervalo, valor anterior e método de restauração.
+`BackendCapabilities` diferencia suporte real, preparado sem backend, não testado, indisponível, falha, Companion ausente e adaptador ausente. Adaptadores OEM nunca habilitam escrita somente por fabricante/modelo. Uma futura operação física deverá comprovar caminho, formato, intervalo, valor anterior e método de restauração.
 
 ## Interface adaptativa
 
-Activities desenham edge-to-edge e aplicam `systemBars`, `displayCutout` e `ime` por `WindowInsetsCompat`. O conteúdo é centralizado até 840dp; controles numéricos trocam linha por coluna abaixo de 340dp úteis ou com `fontScale >= 1.25`. Botões de ação também empilham em largura compacta.
+Activities desenham edge-to-edge e aplicam `systemBars`, `displayCutout` e `ime` por `WindowInsetsCompat`. O conteúdo é centralizado até 840dp; controles numéricos usam sempre slider e input verticais em largura total para evitar colapso de medição em ROMs diferentes. Botões de ação também empilham em largura compacta.
+
+As páginas principais mostram apenas editores funcionais. Modelos sem executor real — automação contínua, controles físicos OLED/LCD e escrita de resolução/refresh — são consolidados no painel de compatibilidade.

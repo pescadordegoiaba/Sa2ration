@@ -1,0 +1,6 @@
+include README.md
+include LICENSE
+recursive-include resources *.desktop *.svg
+recursive-include gpu-effect .clang-format CMakeLists.txt LICENSE *.cpp *.h *.json *.qrc *.frag
+recursive-include native-app CMakeLists.txt *.cpp *.h
+recursive-include third_party/imgui LICENSE.txt README.sa2ration.md *.cpp *.h

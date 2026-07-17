@@ -28,7 +28,9 @@
     <string name="status_supported">Supported</string>
     <string name="status_unsupported">Unsupported</string>
     <string name="status_experimental">Experimental</string>
-    <string name="status_requires_module">Requires companion module</string>
+    <string name="status_prepared">Prepared, backend not available yet</string>
+    <string name="status_requires_module">Requires Companion + compatible adapter</string>
+    <string name="status_requires_adapter">Requires compatible adapter</string>
     <string name="status_failed">Failed</string>
     <string name="status_untested">Untested</string>
     <string name="status_unknown">Unknown</string>

@@ -17,12 +17,8 @@ public final class PanelClassifier {
         if(text.contains("/sys/class/backlight/")&&!text.contains("no backlight"))add(PanelTechnology.LCD,45,"backlight físico exposto",scores,info);
         if((text.contains("s6e3")||text.contains("s6e8")||text.contains("ea807"))&&!text.contains("/sys/class/backlight/"))add(PanelTechnology.AMOLED,58,"código de painel OLED conhecido e sem backlight exposto",scores,info);
         PanelTechnology best=PanelTechnology.UNKNOWN;int max=0;for(Map.Entry<PanelTechnology,Integer> e:scores.entrySet())if(e.getValue()>max){best=e.getKey();max=e.getValue();}
-        PanelTechnology[] specificOrder={PanelTechnology.MINI_LED,PanelTechnology.DYNAMIC_AMOLED,PanelTechnology.SUPER_AMOLED,
-                PanelTechnology.LTPO_OLED,PanelTechnology.POLED,PanelTechnology.AMOLED,PanelTechnology.LTPO_LCD,
-                PanelTechnology.LTPS_LCD,PanelTechnology.PLS_LCD,PanelTechnology.IPS_LCD,PanelTechnology.TFT_LCD};
-        for(PanelTechnology candidate:specificOrder)if(scores.containsKey(candidate)){best=candidate;max=scores.get(candidate);break;}
         info.detectedTechnology=best;info.effectiveTechnology=best;info.confidence=Math.min(99,max);info.hardwareSupportInferred=best!=PanelTechnology.UNKNOWN;return info;
     }
     private static void score(String text,String keyword,PanelTechnology t,int w,Map<PanelTechnology,Integer>s,DisplayPanelInfo i){if(text.contains(keyword))add(t,w,"evidência contém '"+keyword+"'",s,i);}
-    private static void add(PanelTechnology t,int w,String d,Map<PanelTechnology,Integer>s,DisplayPanelInfo i){s.put(t,s.getOrDefault(t,0)+w);i.addEvidence("heurística",d,w);}
+    private static void add(PanelTechnology t,int w,String d,Map<PanelTechnology,Integer>s,DisplayPanelInfo i){s.put(t,Math.max(s.getOrDefault(t,0),w));i.addEvidence("heurística",d,w);}
 }

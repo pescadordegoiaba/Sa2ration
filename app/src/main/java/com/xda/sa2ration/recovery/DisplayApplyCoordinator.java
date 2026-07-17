@@ -97,11 +97,15 @@ public final class DisplayApplyCoordinator implements AutoCloseable {
 
     public static boolean isDangerous(DisplayConfiguration c, Matrix4 matrix) {
         if (!c.masterEnabled) return false;
-        if (Math.abs(c.globalSaturation) > 3 || Math.abs(c.globalContrast) > 3
-                || Math.abs(c.digitalBrightnessGain) > 2 || Math.abs(c.digitalBrightnessOffset) > .35
-                || Math.abs(c.blackLevel) > .35 || Math.abs(c.whiteLevel) > 2
-                || Math.abs(c.redGain) > 3 || Math.abs(c.greenGain) > 3 || Math.abs(c.blueGain) > 3
-                || Math.abs(c.redOffset) > .5 || Math.abs(c.greenOffset) > .5 || Math.abs(c.blueOffset) > .5
+        if ((c.globalSaturationEnabled && Math.abs(c.globalSaturation) > 3)
+                || (c.globalContrastEnabled && Math.abs(c.globalContrast) > 3)
+                || (c.digitalBrightnessEnabled && (Math.abs(c.digitalBrightnessGain) > 2 || Math.abs(c.digitalBrightnessOffset) > .35))
+                || (c.blackLevelEnabled && Math.abs(c.blackLevel) > .35)
+                || (c.whiteLevelEnabled && Math.abs(c.whiteLevel) > 2)
+                || (c.rgbGainEnabled && (Math.abs(c.redGain) > 3 || Math.abs(c.greenGain) > 3 || Math.abs(c.blueGain) > 3))
+                || (c.rgbOffsetEnabled && (Math.abs(c.redOffset) > .5 || Math.abs(c.greenOffset) > .5 || Math.abs(c.blueOffset) > .5))
+                || (c.temperatureEnabled && (c.temperatureKelvin < 2000 || c.temperatureKelvin > 12000))
+                || (c.tintEnabled && Math.abs(c.tint) > .5)
                 || c.inversionEnabled || c.customMatrixEnabled) return true;
         for (double value : matrix.toArray()) if (Math.abs(value) > 4) return true;
         return false;

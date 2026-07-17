@@ -61,17 +61,19 @@ public final class SettingsActivity extends AppCompatActivity {
     @Override public boolean onSupportNavigateUp(){finish();return true;}
 
     private void render(DisplayUiState state){content.removeAllViews();
+        section("Resumo","Controles de cor/RGB: funcionam pelo app, sem Companion.\nGama/LUT: exigem Companion + adaptador compatível.\nRecursos físicos do painel: indisponíveis sem backend confirmado do fabricante.");
         section("1. Root","Implementação: "+state.root.implementation+"\nArquitetura: "+state.root.architecture+"\nFuncional (id -u = 0): "+yes(state.root.functionalRoot)+"\nConfiança: "+state.root.confidence+"%\nVersão: "+empty(state.root.versionName)+"\nBinário: "+empty(state.root.binaryPath));
-        dropdown("Seleção manual de root",new String[]{"AUTO","MAGISK","KERNELSU","SUKISU_ULTRA","RESUKISU","KERNELSU_FORK","APATCH","OTHER"},state.selectedRoot,v->viewModel.selectRoot(v));
+        dropdown("Preferência de root (identificação)",new String[]{"AUTO","MAGISK","KERNELSU","SUKISU_ULTRA","RESUKISU","KERNELSU_FORK","APATCH","OTHER"},state.selectedRoot,v->{rendered=false;viewModel.selectRoot(v);});
+        info("A preferência não concede root e não substitui o teste id -u. Nesta versão, todos os tipos usam o mesmo executor su validado.");
         action("Detectar novamente",v->{rendered=false;content.removeAllViews();viewModel.redetect();});action("Testar acesso root",v->{rendered=false;content.removeAllViews();viewModel.redetect();});
         action("Mostrar diagnóstico completo",v->copy(diagnosticText(state)));
 
         StringBuilder panel=new StringBuilder("Tecnologia detectada: ").append(state.panel.detectedTechnology).append("\nTecnologia efetiva: ").append(state.panel.effectiveTechnology).append("\nConfiança: ").append(state.panel.confidence).append("%\nNome: ").append(state.panel.panelName).append("\nFabricante: ").append(state.panel.manufacturer).append("\nBackend provável: ").append(state.panel.probableBackend);
         if(state.panel.manualConflict)panel.append("\nAVISO: seleção manual diverge das evidências.");section("2. Painel",panel.toString());
-        dropdown("Seleção do painel",new String[]{"AUTO","LCD","TFT_LCD","IPS_LCD","PLS_LCD","LTPS_LCD","LTPO_LCD","OLED","POLED","AMOLED","SUPER_AMOLED","DYNAMIC_AMOLED","LTPO_OLED","MINI_LED","OTHER","UNKNOWN"},state.selectedPanel,v->viewModel.selectPanel(v));
+        dropdown("Seleção do painel",new String[]{"AUTO","LCD","TFT_LCD","IPS_LCD","PLS_LCD","LTPS_LCD","LTPO_LCD","OLED","POLED","AMOLED","SUPER_AMOLED","DYNAMIC_AMOLED","LTPO_OLED","MINI_LED","OTHER","UNKNOWN"},state.selectedPanel,v->{rendered=false;viewModel.selectPanel(v);});
 
-        section("3. Backend","Ativo: "+state.backendName+"\nPreferido: "+state.selectedBackend+"\nSurfaceFlinger: "+(state.surfaceFlinger!=null&&state.surfaceFlinger.serviceAvailable?"disponível":"não confirmado")+"\nCompanion: "+(state.companionModule.installed?"instalado "+state.companionModule.version:"não instalado")+"\nAdaptador não linear: "+state.companionModule.adapterId+"\nGama: "+state.companionModule.gamma+" · LUT 1D: "+state.companionModule.lut1d+" · LUT 3D: "+state.companionModule.lut3d);
-        dropdown("Backend preferido",new String[]{"AUTO","SURFACEFLINGER","GENERIC_AOSP","SAMSUNG","QUALCOMM","MEDIATEK","EXYNOS","XIAOMI","ONEPLUS","OPPO","REALME","MOTOROLA","PIXEL"},state.selectedBackend,v->viewModel.selectBackend(v));
+        section("3. Backend","Ativo: "+state.backendName+" (seleção automática)\nSurfaceFlinger: "+(state.surfaceFlinger!=null&&state.surfaceFlinger.serviceAvailable?"disponível, ainda não validado nesta ROM":"não confirmado")+"\nCompanion: "+companionSummary(state)+"\nAdaptador ativo: "+(state.companionModule.hasAdapter()?state.companionModule.adapterId:"nenhum")+"\nGama/LUT: "+(state.companionModule.hasAdapter()?"conforme capacidades do adaptador":"indisponíveis; o módulo sozinho não basta"));
+        info("Backends Samsung/Qualcomm/MediaTek/OEM são apenas modelos de detecção nesta versão. A seleção manual foi ocultada porque ainda não alterava a execução.");
 
         section("4. Segurança","Alterações extremas usam confirmação de 15 segundos. A configuração estável é separada da configuração em edição.");
         action("Restaurar display neutro",v->viewModel.resetAll());
@@ -94,5 +96,6 @@ public final class SettingsActivity extends AppCompatActivity {
     private void info(String text){TextView v=new TextView(this);v.setText(text);v.setTextSize(13);v.setTextColor(MaterialColors.getColor(v,com.google.android.material.R.attr.colorOnSurfaceVariant,0xff555555));v.setPadding(dp(8),dp(8),dp(8),dp(12));content.addView(v);}
     private void copy(String text){((ClipboardManager)getSystemService(Context.CLIPBOARD_SERVICE)).setPrimaryClip(ClipData.newPlainText("Sa2ration diagnóstico",text));Toast.makeText(this,"Diagnóstico copiado",Toast.LENGTH_SHORT).show();}
     private void write(Uri uri,String text){try(OutputStream out=getContentResolver().openOutputStream(uri)){if(out==null)throw new IllegalStateException("Sem stream");out.write(text.getBytes(StandardCharsets.UTF_8));Toast.makeText(this,"Arquivo exportado",Toast.LENGTH_SHORT).show();}catch(Exception e){Toast.makeText(this,"Falha: "+e.getMessage(),Toast.LENGTH_LONG).show();}}
+    private String companionSummary(DisplayUiState state){if(!state.companionModule.installed)return"não instalado";if(state.companionModule.passive&&!state.companionModule.bootService)return"instalado "+state.companionModule.version+"; passivo, sem serviço de boot";return"instalado "+state.companionModule.version+"; versão antiga/não passiva, atualize para 1.1.0";}
     private String yes(boolean value){return value?"Sim":"Não";}private String empty(String value){return value==null||value.isEmpty()?"não informado":value;}private int dp(int value){return Math.round(value*getResources().getDisplayMetrics().density);}
 }

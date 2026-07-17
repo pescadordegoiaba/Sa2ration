@@ -13,6 +13,7 @@ public final class SurfaceFlingerBackend implements DisplayBackend {
     public static final String NATIVE_MODE_PROPERTY = "persist.sys.sf.native_mode";
     private final RootShellExecutor executor;
     private final BackendCapabilities capabilities = BackendCapabilities.genericSurfaceFlinger();
+    private final SurfaceFlingerTransactions transactions = new SurfaceFlingerTransactionResolver().resolve();
 
     public SurfaceFlingerBackend(RootShellExecutor executor) {
         this.executor = executor;
@@ -23,16 +24,25 @@ public final class SurfaceFlingerBackend implements DisplayBackend {
 
     @Override
     public ShellResult apply(DisplayConfiguration configuration, Matrix4 matrix) {
-        boolean enabled = configuration != null && configuration.masterEnabled;
-        double saturation = enabled && configuration.globalSaturationEnabled
-                ? configuration.globalSaturation : 1.0;
+        DisplayConfiguration safe=configuration==null?DisplayConfiguration.neutral():configuration.copy();
+        safe.sanitize();
+        boolean enabled = safe.masterEnabled;
+        double saturation = enabled && safe.globalSaturationEnabled ? safe.globalSaturation : 1.0;
         Matrix4 effectiveMatrix = enabled ? matrix : Matrix4.identity();
-        int nativeMode = configuration != null && configuration.colorManagementEnabled ? 0 : 1;
+        if(effectiveMatrix==null||!effectiveMatrix.isSurfaceFlingerAffine())effectiveMatrix=Matrix4.identity();
+        int nativeMode = safe.colorManagementEnabled ? 0 : 1;
         String saturationValue = String.format(Locale.US, "%.8f", saturation);
-        ShellCommand command = ShellCommand.builder("setprop " + SATURATION_PROPERTY + " " + saturationValue)
-                .add("service call SurfaceFlinger 1022 f " + saturationValue)
-                .add("service call SurfaceFlinger 1015 i32 1" + effectiveMatrix.toSurfaceFlingerArguments())
-                .add("service call SurfaceFlinger 1023 i32 " + nativeMode)
+        String apply="service call SurfaceFlinger "+transactions.globalSaturation+" f "+saturationValue
+                +" && service call SurfaceFlinger "+transactions.colorMatrix+" i32 1"+effectiveMatrix.toSurfaceFlingerArguments()
+                +" && service call SurfaceFlinger "+transactions.colorManagement+" i32 "+nativeMode
+                +" && setprop "+SATURATION_PROPERTY+" "+saturationValue;
+        String neutral="service call SurfaceFlinger "+transactions.globalSaturation+" f 1.0 >/dev/null 2>&1; "
+                +"service call SurfaceFlinger "+transactions.colorMatrix+" i32 0 >/dev/null 2>&1; "
+                +"service call SurfaceFlinger "+transactions.colorManagement+" i32 0 >/dev/null 2>&1; "
+                +"setprop "+SATURATION_PROPERTY+" 1.0 >/dev/null 2>&1";
+        ShellCommand command = ShellCommand.builder("if "+apply+"; then exit 0; fi")
+                .add(neutral)
+                .add("exit 1")
                 .timeoutMs(15_000)
                 .build();
         return executor.executeBlocking(command);

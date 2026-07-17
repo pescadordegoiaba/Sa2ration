@@ -1,0 +1,5 @@
+<RCC>
+  <qresource prefix="/effects/sa2ration_gpu">
+    <file>shaders/sa2ration.frag</file>
+  </qresource>
+</RCC>

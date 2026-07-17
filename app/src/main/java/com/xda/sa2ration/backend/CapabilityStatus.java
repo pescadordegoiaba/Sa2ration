@@ -5,7 +5,9 @@ public enum CapabilityStatus {
     UNSUPPORTED,
     EXPERIMENTAL,
     UNTESTED,
+    PREPARED,
     REQUIRES_MODULE,
+    REQUIRES_ADAPTER,
     FAILED,
     UNKNOWN
 }

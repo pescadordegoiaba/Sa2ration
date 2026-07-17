@@ -25,6 +25,7 @@ import androidx.lifecycle.ViewModelProvider;
 import com.xda.sa2ration.backend.CapabilityStatus;
 import com.xda.sa2ration.domain.DisplayConfiguration;
 import com.xda.sa2ration.domain.FilterPreset;
+import com.xda.sa2ration.domain.Matrix4;
 import com.xda.sa2ration.ui.widget.CapabilityCard;
 import com.xda.sa2ration.ui.widget.EffectControlCard;
 import com.xda.sa2ration.profile.DisplayProfile;
@@ -35,12 +36,14 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.color.MaterialColors;
 
 import java.util.Locale;
+import java.util.Objects;
 
 public final class DashboardFragment extends Fragment {
     private static final String ARG_CATEGORY="category";
     private DisplayViewModel viewModel;
     private LinearLayout content;
     private boolean rendered;
+    private String renderedProfileId;
 
     public static DashboardFragment newInstance(DashboardCategory category){
         DashboardFragment fragment=new DashboardFragment();Bundle args=new Bundle();args.putString(ARG_CATEGORY,category.name());fragment.setArguments(args);return fragment;
@@ -51,7 +54,13 @@ public final class DashboardFragment extends Fragment {
         content=new LinearLayout(context);content.setOrientation(LinearLayout.VERTICAL);int base=getResources().getDimensionPixelSize(R.dimen.screen_horizontal_padding);int centered=dp(Math.max(0,(getResources().getConfiguration().screenWidthDp-840)/2));int horizontal=Math.max(base,centered);int vertical=getResources().getDimensionPixelSize(R.dimen.screen_vertical_padding);content.setPadding(horizontal,vertical,horizontal,vertical+dp(16));scroll.addView(content,new NestedScrollView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,ViewGroup.LayoutParams.WRAP_CONTENT));
         ProgressBar progress=new ProgressBar(context);content.addView(progress,new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,ViewGroup.LayoutParams.WRAP_CONTENT));
         viewModel=new ViewModelProvider(requireActivity()).get(DisplayViewModel.class);
-        viewModel.state().observe(getViewLifecycleOwner(),state->{if(!rendered&&!state.loading){rendered=true;content.removeAllViews();render(category(),state);}});
+        viewModel.state().observe(getViewLifecycleOwner(),state->{
+            if(state.loading)return;
+            String activeProfile=state.configuration.activeProfileId;
+            if(!rendered||!Objects.equals(renderedProfileId,activeProfile)){
+                rendered=true;renderedProfileId=activeProfile;content.removeAllViews();render(category(),state);
+            }
+        });
         return scroll;
     }
 
@@ -62,9 +71,7 @@ public final class DashboardFragment extends Fragment {
         addTitle(getString(category.titleRes));
         switch(category){
             case SIMPLE:renderSimple(c,state);break;case COLOR:renderColor(c);break;case RGB:renderRgb(c);break;
-            case DISPLAY:renderDisplay();break;case OLED:renderOled();break;case LCD:renderLcd();break;
-            case ACCESSIBILITY:renderAccessibility(c);break;case PROFILES:renderProfiles(state);break;
-            case AUTOMATION:renderAutomation();break;case COMPATIBILITY:renderCompatibility(state);break;
+            case PROFILES:renderProfiles(state);break;case COMPATIBILITY:renderCompatibility(state);break;
             case ADVANCED:renderAdvanced(c,state);break;
         }
     }
@@ -94,7 +101,8 @@ public final class DashboardFragment extends Fragment {
     }
 
     private void renderColor(DisplayConfiguration c){
-        addBrightness(c,false);addBlack(c);addWhite(c);addTemperature(c,false);addTint(c);addHue(c);addGrayscale(c);addInversion(c);addFilter(c);
+        info("Temperatura e brilho global ficam em Simples. Esta página reúne ajustes lineares adicionais.");
+        addBlack(c);addWhite(c);addTint(c);addHue(c);addGrayscale(c);addInversion(c);addFilter(c);
     }
 
     private void renderRgb(DisplayConfiguration c){
@@ -106,6 +114,7 @@ public final class DashboardFragment extends Fragment {
         rgb(gain,"Ganho",c.redGain,c.greenGain,c.blueGain,(x,v)->x.redGain=v,(x,v)->x.greenGain=v,(x,v)->x.blueGain=v,0,4,-100,100);
         EffectControlCard offset=addEffect("Offset RGB","Soma um deslocamento a cada canal.",c.rgbOffsetEnabled,v->viewModel.update(x->x.rgbOffsetEnabled=v),()->reset(x->{x.redOffset=x.greenOffset=x.blueOffset=0;}));
         rgb(offset,"Offset",c.redOffset,c.greenOffset,c.blueOffset,(x,v)->x.redOffset=v,(x,v)->x.greenOffset=v,(x,v)->x.blueOffset=v,-1,1,-10,10);
+        addBrightness(c,false);
         addMixer(c);
     }
 
@@ -118,23 +127,30 @@ public final class DashboardFragment extends Fragment {
 
     private void addBlack(DisplayConfiguration c){EffectControlCard card=addEffect("Nível de preto","Eleva ou esmaga sombras linearmente; não é black equalizer real.",c.blackLevelEnabled,v->viewModel.update(x->x.blackLevelEnabled=v),()->reset(x->{x.blackLevel=x.redBlackLevel=x.greenBlackLevel=x.blueBlackLevel=0;}));card.addNumeric("Global",c.blackLevel,-.5,.5,.01,-10,10,v->viewModel.update(x->x.blackLevel=v));rgb(card,"Canal",c.redBlackLevel,c.greenBlackLevel,c.blueBlackLevel,(x,v)->x.redBlackLevel=v,(x,v)->x.greenBlackLevel=v,(x,v)->x.blueBlackLevel=v,-.5,.5,-10,10);}
     private void addWhite(DisplayConfiguration c){EffectControlCard card=addEffect("Nível de branco","Ganho máximo linear com possibilidade de clipping.",c.whiteLevelEnabled,v->viewModel.update(x->x.whiteLevelEnabled=v),()->reset(x->{x.whiteLevel=x.redWhiteLevel=x.greenWhiteLevel=x.blueWhiteLevel=1;}));card.addNumeric("Global",c.whiteLevel,0,3,.01,-100,100,v->viewModel.update(x->x.whiteLevel=v));rgb(card,"Canal",c.redWhiteLevel,c.greenWhiteLevel,c.blueWhiteLevel,(x,v)->x.redWhiteLevel=v,(x,v)->x.greenWhiteLevel=v,(x,v)->x.blueWhiteLevel=v,0,3,-100,100);}
-    private void addTemperature(DisplayConfiguration c,boolean compact){EffectControlCard card=addEffect("Temperatura de cor","Aproximação matemática sRGB; neutro inicial em 6500 K.",c.temperatureEnabled,v->viewModel.update(x->x.temperatureEnabled=v),()->reset(x->{x.temperatureKelvin=6500;x.neutralTemperatureKelvin=6500;x.temperatureManualRgb=false;}));card.addNumeric("Kelvin",c.temperatureKelvin,1000,12000,50,500,40000,v->viewModel.update(x->x.temperatureKelvin=v));String[] presets={"2000","2700","3400","4000","5000","5500","6500","7500","9300","12000"};card.addDropdown("Preset Kelvin",presets,String.format(Locale.US,"%.0f",c.temperatureKelvin),(p,v,pos,id)->viewModel.update(x->x.temperatureKelvin=Double.parseDouble(presets[pos])));if(!compact)card.addCheckBox("Modo RGB manual",c.temperatureManualRgb,(b,on)->viewModel.update(x->x.temperatureManualRgb=on));}
+    private void addTemperature(DisplayConfiguration c,boolean compact){EffectControlCard card=addEffect("Temperatura de cor","Aproximação matemática sRGB em Kelvin; não precisa do módulo.",c.temperatureEnabled,v->viewModel.update(x->{x.temperatureEnabled=v;x.temperatureManualRgb=false;}),()->reset(x->{x.temperatureKelvin=6500;x.neutralTemperatureKelvin=6500;x.temperatureManualRgb=false;}));card.addNumeric("Kelvin",c.temperatureKelvin,1000,12000,50,500,40000,v->viewModel.update(x->{x.temperatureKelvin=v;x.temperatureManualRgb=false;}));String[] presets={"2000","2700","3400","4000","5000","5500","6500","7500","9300","12000"};card.addDropdown("Preset Kelvin",presets,String.format(Locale.US,"%.0f",c.temperatureKelvin),(p,v,pos,id)->viewModel.update(x->{x.temperatureKelvin=Double.parseDouble(presets[pos]);x.temperatureManualRgb=false;}));}
     private void addTint(DisplayConfiguration c){EffectControlCard card=addEffect("Tint verde–magenta","Valor positivo favorece verde; negativo favorece magenta.",c.tintEnabled,v->viewModel.update(x->x.tintEnabled=v),()->reset(x->x.tint=0));card.addNumeric("Tint",c.tint,-1,1,.01,-10,10,v->viewModel.update(x->x.tint=v));}
     private void addHue(DisplayConfiguration c){EffectControlCard card=addEffect("Matiz","Rotação linear no espaço RGB.",c.hueEnabled,v->viewModel.update(x->x.hueEnabled=v),()->reset(x->x.hueDegrees=0));card.addNumeric("Graus",c.hueDegrees,-180,180,1,-3600,3600,v->viewModel.update(x->x.hueDegrees=v));}
-    private void addGrayscale(DisplayConfiguration c){EffectControlCard card=addEffect("Escala de cinza","Mistura por coeficientes de luminância selecionáveis.",c.grayscaleEnabled,v->viewModel.update(x->x.grayscaleEnabled=v),()->reset(x->{x.grayscaleIntensity=1;x.grayscaleCoefficients="REC709";}));card.addNumeric("Intensidade",c.grayscaleIntensity,0,1,.01,-10,10,v->viewModel.update(x->x.grayscaleIntensity=v));String[] modes={"REC601","REC709","REC2020","AVERAGE","CUSTOM"};card.addDropdown("Coeficientes",modes,c.grayscaleCoefficients,(p,v,pos,id)->viewModel.update(x->x.grayscaleCoefficients=modes[pos]));}
+    private void addGrayscale(DisplayConfiguration c){EffectControlCard card=addEffect("Escala de cinza","Mistura por coeficientes prontos de luminância; não precisa do módulo.",c.grayscaleEnabled,v->viewModel.update(x->x.grayscaleEnabled=v),()->reset(x->{x.grayscaleIntensity=1;x.grayscaleCoefficients="REC709";}));card.addNumeric("Intensidade",c.grayscaleIntensity,0,1,.01,-10,10,v->viewModel.update(x->x.grayscaleIntensity=v));String[] modes={"REC601","REC709","REC2020","AVERAGE"};String selected="CUSTOM".equals(c.grayscaleCoefficients)?"REC709":c.grayscaleCoefficients;card.addDropdown("Coeficientes",modes,selected,(p,v,pos,id)->viewModel.update(x->x.grayscaleCoefficients=modes[pos]));}
     private void addInversion(DisplayConfiguration c){EffectControlCard card=addEffect("Inversão","Negativo total ou por canal, com intensidade.",c.inversionEnabled,v->viewModel.update(x->x.inversionEnabled=v),()->reset(x->{x.inversionIntensity=1;x.invertRed=x.invertGreen=x.invertBlue=true;}));card.addNumeric("Intensidade",c.inversionIntensity,0,1,.01,-10,10,v->viewModel.update(x->x.inversionIntensity=v));card.addCheckBox("Vermelho",c.invertRed,(b,on)->viewModel.update(x->x.invertRed=on));card.addCheckBox("Verde",c.invertGreen,(b,on)->viewModel.update(x->x.invertGreen=on));card.addCheckBox("Azul",c.invertBlue,(b,on)->viewModel.update(x->x.invertBlue=on));}
     private void addFilter(DisplayConfiguration c){EffectControlCard card=addEffect("Filtros por matriz","Presets lineares; correções/simulações de daltonismo são aproximações.",c.filterEnabled,v->viewModel.update(x->x.filterEnabled=v),()->reset(x->{x.filterPreset="NONE";x.filterIntensity=1;}));String[] names=new String[FilterPreset.values().length];for(int i=0;i<names.length;i++)names[i]=FilterPreset.values()[i].name();card.addDropdown("Preset",names,c.filterPreset,(p,v,pos,id)->viewModel.update(x->x.filterPreset=names[pos]));card.addNumeric("Intensidade",c.filterIntensity,0,1,.01,-10,10,v->viewModel.update(x->x.filterIntensity=v));}
 
     private void addMixer(DisplayConfiguration c){EffectControlCard card=addEffect("Misturador de canais 3×3","Cada linha define um canal de saída.",c.channelMixerEnabled,v->viewModel.update(x->x.channelMixerEnabled=v),()->reset(x->x.channelMixer=DisplayConfiguration.identityArray()));String[] labels={"RR","RG","RB","GR","GG","GB","BR","BG","BB"};for(int i=0;i<9;i++){final int index=i;card.addNumeric(labels[i],c.channelMixer[i],-2,2,.01,-100,100,v->viewModel.update(x->x.channelMixer[index]=v));}card.addAction("Trocar vermelho e azul",v->reset(x->x.channelMixer=new double[]{0,0,1,0,1,0,1,0,0}));card.addAction("Trocar vermelho e verde",v->reset(x->x.channelMixer=new double[]{0,1,0,1,0,0,0,0,1}));card.addAction("Trocar verde e azul",v->reset(x->x.channelMixer=new double[]{1,0,0,0,0,1,0,1,0}));}
 
-    private void renderDisplay(){cap("Brilho físico","Requer backend confirmado do sistema/fabricante.",CapabilityStatus.UNKNOWN);cap("Brilho automático / Extra Dim","Preparado; API e permissões variam por ROM.",CapabilityStatus.UNTESTED);cap("Taxa de atualização mínima/máxima/fixa","Modelo de capacidade disponível; backend não confirmado neste host.",CapabilityStatus.UNKNOWN);cap("Resolução e densidade DPI","Requer comandos wm e recuperação específica por dispositivo.",CapabilityStatus.EXPERIMENTAL);cap("Modos de cor / gamut / HDR","Detectados pelo backend SurfaceFlinger/fabricante quando disponíveis.",CapabilityStatus.UNTESTED);cap("HBM / DC dimming / PWM / MEMC","Nunca habilitado sem interface confirmada.",CapabilityStatus.UNKNOWN);}
-    private void renderOled(){info("Esta seção só libera a interface; comandos de hardware continuam condicionados às capacidades detectadas.");cap("Proteção contra burn-in / pixel shift","Requer interface oficial ou vendor segura.",CapabilityStatus.UNKNOWN);cap("HBM, ABL e limite de brilho","Somente leitura/detecção até existir backend confirmado.",CapabilityStatus.UNKNOWN);cap("DC dimming / anti-flicker / PWM","Preparado para adaptadores de fabricante.",CapabilityStatus.UNKNOWN);cap("Black crush / baixa luminosidade","Ajuste linear disponível em Cor; correção real requer LUT.",CapabilityStatus.REQUIRES_MODULE);cap("Ciclos de compensação","Não são executados sem interface oficial confirmada.",CapabilityStatus.UNSUPPORTED);}
-    private void renderLcd(){info("Brilho digital, brilho do sistema e backlight físico são recursos diferentes.");cap("Backlight físico / CABC / SRE","Requer sysfs ou serviço vendor confirmado e reversível.",CapabilityStatus.UNKNOWN);cap("Local dimming / uniformidade","Disponível apenas se o painel e backend expuserem suporte.",CapabilityStatus.UNKNOWN);cap("Overdrive / redução de ghosting","Nunca aplicado por tentativa e erro.",CapabilityStatus.UNKNOWN);cap("Black/white level por software","Disponível na aba Cor como transformação linear.",CapabilityStatus.SUPPORTED);}
-    private void renderAccessibility(DisplayConfiguration c){addGrayscale(c);addInversion(c);addFilter(c);cap("Daltonizer nativo","Transação será usada apenas após resolução de capacidade.",CapabilityStatus.UNTESTED);}
     private void renderProfiles(DisplayUiState state){info("Perfis armazenam a configuração completa, tecnologia do painel, backend e metadados versionados.");cap("Perfis JSON versionados","Persistência atômica, presets e importação/exportação disponíveis.",CapabilityStatus.SUPPORTED);for(DisplayProfile profile:state.profiles){Button b=button((profile.id.equals(state.configuration.activeProfileId)?"✓ ":"")+profile.name);b.setOnClickListener(v->viewModel.applyProfile(profile.id));content.addView(b);if(!profile.builtIn){boolean stacked=stackActions();LinearLayout actions=new LinearLayout(requireContext());actions.setOrientation(stacked?LinearLayout.VERTICAL:LinearLayout.HORIZONTAL);Button duplicate=button("Duplicar");duplicate.setOnClickListener(v->{viewModel.duplicateProfile(profile.id);requireActivity().recreate();});Button delete=button("Excluir");delete.setOnClickListener(v->{viewModel.deleteProfile(profile.id);requireActivity().recreate();});actions.addView(duplicate,actionParams(stacked));actions.addView(delete,actionParams(stacked));content.addView(actions);}}Button create=button("Criar perfil da configuração atual");create.setOnClickListener(v->{viewModel.createProfile("Personalizado "+System.currentTimeMillis());requireActivity().recreate();});content.addView(create);Button export=button("Copiar todos os perfis (JSON)");export.setOnClickListener(v->copy(viewModel.exportProfiles()));content.addView(export);Button importButton=button("Importar perfis da área de transferência");importButton.setOnClickListener(v->{String json=clipboard();if(json!=null&&viewModel.importProfiles(json)){toast("Perfis importados");requireActivity().recreate();}else toast("JSON de perfis inválido");});content.addView(importButton);}
-    private void renderAutomation(){cap("Por aplicativo","A transformação será global quando o app-alvo estiver em primeiro plano.",CapabilityStatus.EXPERIMENTAL);cap("Horário e dia da semana","Modelo de regras preparado; agendamento completo pendente.",CapabilityStatus.EXPERIMENTAL);cap("Nascer/pôr do sol, sensor e bateria","Requer permissões e condições WorkManager.",CapabilityStatus.REQUIRES_MODULE);cap("HDR, jogo e vídeo","Depende de detecção confiável do fabricante/compositor.",CapabilityStatus.UNKNOWN);}
-    private void renderCompatibility(DisplayUiState state){info("Backend ativo: "+state.backendName);cap("Matriz SurfaceFlinger 1015","Backend legado; precisa de teste funcional no aparelho.",CapabilityStatus.UNTESTED);cap("Saturação SurfaceFlinger 1022","Mantém o controle global atual.",CapabilityStatus.UNTESTED);cap("Gerenciamento de cor 1023","Mantém o comportamento atual.",CapabilityStatus.UNTESTED);cap("Gama / LUT 1D / LUT 3D","Não simuladas por matriz; exigem backend não linear.",CapabilityStatus.REQUIRES_MODULE);cap("Relatório TXT/JSON","Exportação JSON de estado disponível em Avançado.",CapabilityStatus.EXPERIMENTAL);}
+    private void renderCompatibility(DisplayUiState state){
+        info("O que funciona sem módulo: todos os controles das páginas Simples, Cor e RGB, perfis, matriz personalizada, recuperação e tiles. Eles usam o SurfaceFlinger legado e ainda precisam ser validados na ROM.");
+        cap("Matriz, saturação e gerenciamento de cor","Backend "+state.backendName+". Não usam o Companion.",CapabilityStatus.UNTESTED);
+        cap("Perfis, backup, tiles e recuperação","Implementados somente pelo aplicativo; não usam módulo.",CapabilityStatus.SUPPORTED);
+        String adapter=state.companionModule.installed?(state.companionModule.hasAdapter()?"Companion "+state.companionModule.version+" com adaptador "+state.companionModule.adapterId:"Companion instalado, mas sem adaptador ativo."):"Companion não instalado.";
+        cap("Gama real, curvas e LUT","Precisam do Companion e de um adaptador específico para este hardware. O módulo sozinho não habilita o recurso. "+adapter,state.companionModule.lut1d);
+        cap("Brilho físico, HBM, DC dimming e PWM","Precisam de backend específico do fabricante; o Companion sozinho não é suficiente.",CapabilityStatus.PREPARED);
+        cap("Refresh rate, resolução e DPI","Somente arquitetura preparada; nenhuma opção de escrita é exibida nesta versão.",CapabilityStatus.PREPARED);
+        cap("Automação por app/horário/sensores","Motor de regras existe, mas o observador contínuo ainda não foi implementado. Não depende do Companion.",CapabilityStatus.PREPARED);
+        cap("OLED/LCD específicos","Detecção existe, mas comandos físicos permanecem ocultos até existir backend confirmado.",CapabilityStatus.PREPARED);
+        info("Diagnósticos TXT/JSON ficam em Configurações → Diagnóstico.");
+    }
     private void renderAdvanced(DisplayConfiguration c,DisplayUiState state){
+        addEffect("Gerenciamento de cor","Alterna o modo legado do SurfaceFlinger. Não precisa do Companion, mas a transação varia entre ROMs.",c.colorManagementEnabled,v->viewModel.update(x->x.colorManagementEnabled=v),null);
         EffectControlCard custom=addEffect("Matriz personalizada 4×4","Editor column-major. A última linha deve permanecer 0,0,0,1.",c.customMatrixEnabled,v->viewModel.update(x->x.customMatrixEnabled=v),()->reset(x->x.customMatrix=com.xda.sa2ration.domain.Matrix4.identity().toArray()));for(int i=0;i<16;i++){final int index=i;custom.addNumeric("M["+i+"]",c.customMatrix[i],-4,4,.01,-1000,1000,v->viewModel.update(x->x.customMatrix[index]=v));}
         custom.addAction("Copiar matriz deste estágio",v->copy(join(c.customMatrix)));
         custom.addAction("Colar matriz",v->pasteMatrix());
@@ -142,11 +158,11 @@ public final class DashboardFragment extends Fragment {
         Button copyFinal=button("Copiar matriz final");copyFinal.setOnClickListener(v->copy(join(state.finalMatrix.toArray())));content.addView(copyFinal);
         Button export=button("Copiar configuração JSON");export.setOnClickListener(v->copy(viewModel.exportConfiguration()));content.addView(export);
         Button importButton=button("Importar configuração JSON da área de transferência");importButton.setOnClickListener(v->pasteConfiguration());content.addView(importButton);
-        String module=state.companionModule.installed?(state.companionModule.hasAdapter()?"Módulo "+state.companionModule.version+", adaptador "+state.companionModule.adapterId:"Módulo "+state.companionModule.version+" instalado sem adaptador ativo"):"Instale o ZIP Sa2ration Companion e um adaptador validado";
+        String module=state.companionModule.installed?(state.companionModule.hasAdapter()?"Companion "+state.companionModule.version+", adaptador ativo "+state.companionModule.adapterId:"Companion "+state.companionModule.version+" instalado sem adaptador explicitamente ativado"):"Requer o ZIP Sa2ration Companion e um adaptador validado para o aparelho";
         cap("Gama real e gama RGB",module,state.companionModule.gamma);cap("Curvas RGB e LUT 1D",module,state.companionModule.lut1d);cap("LUT 3D .cube",module,state.companionModule.lut3d);cap("Nitidez, debanding, dithering, tone mapping HDR","Não lineares/espaciais; não são falsamente aproximados.",CapabilityStatus.REQUIRES_MODULE);
     }
 
-    private void pasteMatrix(){String text=clipboard();if(text==null)return;String[] tokens=text.trim().split("[\\s,;]+",-1);if(tokens.length!=16){toast("A matriz precisa de 16 valores");return;}try{double[] m=new double[16];for(int i=0;i<16;i++)m[i]=Double.parseDouble(tokens[i]);viewModel.update(x->{x.customMatrix=m;x.customMatrixEnabled=true;});requireActivity().recreate();}catch(NumberFormatException e){toast("Matriz inválida");}}
+    private void pasteMatrix(){String text=clipboard();if(text==null)return;String[] tokens=text.trim().split("[\\s,;]+",-1);if(tokens.length!=16){toast("A matriz precisa de 16 valores");return;}try{double[] m=new double[16];for(int i=0;i<16;i++){m[i]=Double.parseDouble(tokens[i]);if(!Double.isFinite(m[i]))throw new NumberFormatException("não finito");}if(!Matrix4.of(m).isSurfaceFlingerAffine()){toast("A última linha deve ser 0, 0, 0, 1");return;}viewModel.update(x->{x.customMatrix=m;x.customMatrixEnabled=true;});requireActivity().recreate();}catch(NumberFormatException e){toast("Matriz inválida");}}
     private void pasteConfiguration(){String text=clipboard();if(text!=null&&viewModel.importConfiguration(text)){toast("Configuração importada");requireActivity().recreate();}else toast("JSON inválido");}
     private String clipboard(){ClipboardManager manager=(ClipboardManager)requireContext().getSystemService(Context.CLIPBOARD_SERVICE);return manager.hasPrimaryClip()?String.valueOf(manager.getPrimaryClip().getItemAt(0).coerceToText(requireContext())):null;}
     private void copy(String text){((ClipboardManager)requireContext().getSystemService(Context.CLIPBOARD_SERVICE)).setPrimaryClip(ClipData.newPlainText("Sa2ration",text));toast("Copiado");}
